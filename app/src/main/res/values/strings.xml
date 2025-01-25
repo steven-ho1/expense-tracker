@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">Expense Tracker</string>
-    <string name="main_screen">Accueil</string>
+    <string name="home">Accueil</string>
+    <string name="categories">Catégories</string>
+    <string name="charts">Rapports</string>
 </resources>
