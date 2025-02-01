@@ -64,7 +64,6 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
                     "Semaine",
                     "Mois",
                     "Année",
-                    "Période"
                 ).forEachIndexed { index, period ->
                     Tab(
                         selected = selectedPeriodTabIndex.intValue == index,
@@ -76,7 +75,7 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
             }
 
             Text(
-                text = "Pie Chart goes here",
+                text = "Pie Chart ici",
             )
 
             FloatingActionButton(
