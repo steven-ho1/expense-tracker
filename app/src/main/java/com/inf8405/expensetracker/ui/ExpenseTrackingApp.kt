@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberDrawerState
@@ -24,7 +23,6 @@ import com.inf8405.expensetracker.ui.navigation.ExpenseTrackerScreen
 import com.inf8405.expensetracker.ui.navigation.expenseTrackerNavGraph
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpenseTrackingApp(
     navController: NavHostController = rememberNavController()
@@ -43,7 +41,7 @@ fun ExpenseTrackingApp(
     ) {
         Scaffold(
             topBar = {
-                AppBar(currentScreen, drawerState, scope)
+                AppBar(currentScreen, drawerState, scope, navController)
             }
         ) { innerPadding ->
             NavHost(
@@ -54,7 +52,7 @@ fun ExpenseTrackingApp(
                     .verticalScroll(rememberScrollState())
                     .padding(innerPadding)
             ) {
-                expenseTrackerNavGraph()
+                expenseTrackerNavGraph(navController)
             }
         }
     }

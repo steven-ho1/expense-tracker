@@ -1,6 +1,7 @@
 package com.inf8405.expensetracker.ui.components
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -13,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.navigation.NavController
 import com.inf8405.expensetracker.R
 import com.inf8405.expensetracker.ui.navigation.ExpenseTrackerScreen
 import kotlinx.coroutines.CoroutineScope
@@ -23,17 +25,27 @@ import kotlinx.coroutines.launch
 fun AppBar(
     currentScreen: ExpenseTrackerScreen,
     drawerState: DrawerState,
-    scope: CoroutineScope
+    scope: CoroutineScope,
+    navController: NavController
 ) {
     TopAppBar(
         title = { Text(stringResource(currentScreen.title)) },
         navigationIcon = {
-            IconButton(onClick = {
-                scope.launch {
-                    drawerState.open()
+            if (currentScreen == ExpenseTrackerScreen.NewTransaction) {
+                IconButton(onClick = {
+                    navController.navigateUp()
+                }) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                 }
-            }) {
-                Icon(Icons.Default.Menu, contentDescription = "Menu")
+
+            } else {
+                IconButton(onClick = {
+                    scope.launch {
+                        drawerState.open()
+                    }
+                }) {
+                    Icon(Icons.Default.Menu, contentDescription = "Menu")
+                }
             }
         },
         colors = TopAppBarDefaults.mediumTopAppBarColors(

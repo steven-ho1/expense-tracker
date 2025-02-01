@@ -13,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.inf8405.expensetracker.R
 import com.inf8405.expensetracker.ui.navigation.ExpenseTrackerScreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -32,7 +31,7 @@ fun DrawerContent(
                 .verticalScroll(rememberScrollState())
         ) {
             NavigationDrawerItem(
-                label = { Text(stringResource(R.string.home)) },
+                label = { Text(stringResource(ExpenseTrackerScreen.Home.title)) },
                 selected = currentScreen == ExpenseTrackerScreen.Home,
                 onClick = {
                     scope.launch {
@@ -42,7 +41,7 @@ fun DrawerContent(
                 },
             )
             NavigationDrawerItem(
-                label = { Text(stringResource(R.string.categories)) },
+                label = { Text(stringResource(ExpenseTrackerScreen.Categories.title)) },
                 selected = currentScreen == ExpenseTrackerScreen.Categories,
                 onClick = {
                     scope.launch {
@@ -52,7 +51,7 @@ fun DrawerContent(
                 },
             )
             NavigationDrawerItem(
-                label = { Text(stringResource(R.string.charts)) },
+                label = { Text(stringResource(ExpenseTrackerScreen.Charts.title)) },
                 selected = currentScreen == ExpenseTrackerScreen.Charts,
                 onClick = {
                     scope.launch {
