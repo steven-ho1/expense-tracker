@@ -12,21 +12,32 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.inf8405.expensetracker.models.MainViewModelsWrapper
+import com.inf8405.expensetracker.models.TransactionType
 import com.inf8405.expensetracker.ui.navigation.ExpenseTrackerScreen
+import com.inf8405.expensetracker.viewmodels.TransactionViewModel
 import java.util.Locale
 
 @Composable
-fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
-    // TEMPORARY. Just focused on UI for now
+fun HomeScreen(
+    mainViewModelsWrapper: MainViewModelsWrapper,
+    navController: NavController,
+    modifier: Modifier = Modifier
+) {
+    val transactionViewModel: TransactionViewModel = mainViewModelsWrapper.transactionViewModel;
+    val balance by transactionViewModel.balance.collectAsState();
+
+    // TEMPORARY. I will create a HomeViewModel later on
     val selectedFinancialTabIndex = rememberSaveable { mutableIntStateOf(0) }
     val selectedPeriodTabIndex = rememberSaveable { mutableIntStateOf(1) }
-    val balance = 1000.00
 
     Column(
         modifier = Modifier
@@ -42,7 +53,10 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
             modifier = Modifier
                 .padding(horizontal = 20.dp)
         ) {
-            listOf("Dépenses", "Revenus").forEachIndexed { index, financialTab ->
+            listOf(
+                TransactionType.EXPENSES.label,
+                TransactionType.INCOME.label
+            ).forEachIndexed { index, financialTab ->
                 Tab(
                     selected = selectedFinancialTabIndex.intValue == index,
                     onClick = { selectedFinancialTabIndex.intValue = index }) {
@@ -79,7 +93,9 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
             )
 
             FloatingActionButton(
-                onClick = { navController.navigate(ExpenseTrackerScreen.NewTransaction.name) },
+                onClick = {
+                    navController.navigate(ExpenseTrackerScreen.NewTransaction.name)
+                },
                 modifier = Modifier
                     .padding(8.dp)
                     .align(Alignment.End),

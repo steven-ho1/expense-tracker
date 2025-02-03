@@ -12,21 +12,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.inf8405.expensetracker.models.MainViewModelsWrapper
 import com.inf8405.expensetracker.ui.components.AppBar
 import com.inf8405.expensetracker.ui.components.DrawerContent
 import com.inf8405.expensetracker.ui.navigation.ExpenseTrackerScreen
 import com.inf8405.expensetracker.ui.navigation.expenseTrackerNavGraph
-
+import com.inf8405.expensetracker.viewmodels.CategoryViewModel
+import com.inf8405.expensetracker.viewmodels.TransactionViewModel
 
 @Composable
 fun ExpenseTrackingApp(
-    navController: NavHostController = rememberNavController()
 ) {
+    val navController: NavHostController = rememberNavController()
+
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentScreen: ExpenseTrackerScreen = ExpenseTrackerScreen.valueOf(
         backStackEntry?.destination?.route ?: ExpenseTrackerScreen.Home.name
@@ -34,6 +37,10 @@ fun ExpenseTrackingApp(
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+
+    val transactionViewModel: TransactionViewModel = viewModel()
+    val categoryViewModel: CategoryViewModel = viewModel()
+    val mainViewModelsWrapper = MainViewModelsWrapper(transactionViewModel, categoryViewModel)
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -52,15 +59,9 @@ fun ExpenseTrackingApp(
                     .verticalScroll(rememberScrollState())
                     .padding(innerPadding)
             ) {
-                expenseTrackerNavGraph(navController)
+                expenseTrackerNavGraph(navController, mainViewModelsWrapper)
             }
         }
     }
 
-}
-
-@Preview
-@Composable
-fun ScreenPreview() {
-    ExpenseTrackingApp()
 }
