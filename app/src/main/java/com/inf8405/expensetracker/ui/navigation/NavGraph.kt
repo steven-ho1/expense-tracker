@@ -23,7 +23,7 @@ fun NavGraphBuilder.expenseTrackerNavGraph(
         ChartsScreen(mainViewModelsWrapper)
     }
     composable(route = ExpenseTrackerScreen.NewTransaction.name) {
-        NewTransactionScreen(mainViewModelsWrapper)
+        NewTransactionScreen(mainViewModelsWrapper, navController)
     }
     // TODO: Ajouter les autres routes/pages
 }

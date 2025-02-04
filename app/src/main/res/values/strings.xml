@@ -4,4 +4,5 @@
     <string name="categories">Catégories</string>
     <string name="charts">Rapports</string>
     <string name="add_transaction">Ajouter une transaction</string>
+    <string name="amount">Montant</string>
 </resources>

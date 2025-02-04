@@ -16,6 +16,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -35,9 +36,8 @@ fun HomeScreen(
     val transactionViewModel: TransactionViewModel = mainViewModelsWrapper.transactionViewModel;
     val balance by transactionViewModel.balance.collectAsState();
 
-    // TEMPORARY. I will create a HomeViewModel later on
-    val selectedFinancialTabIndex = rememberSaveable { mutableIntStateOf(0) }
-    val selectedPeriodTabIndex = rememberSaveable { mutableIntStateOf(1) }
+    var selectedTransactionTabIndex by rememberSaveable { mutableIntStateOf(0) }
+    var selectedPeriodTabIndex by rememberSaveable { mutableIntStateOf(1) }
 
     Column(
         modifier = Modifier
@@ -49,7 +49,7 @@ fun HomeScreen(
         )
 
         TabRow(
-            selectedTabIndex = selectedFinancialTabIndex.intValue,
+            selectedTabIndex = selectedTransactionTabIndex,
             modifier = Modifier
                 .padding(horizontal = 20.dp)
         ) {
@@ -58,8 +58,8 @@ fun HomeScreen(
                 TransactionType.INCOME.label
             ).forEachIndexed { index, financialTab ->
                 Tab(
-                    selected = selectedFinancialTabIndex.intValue == index,
-                    onClick = { selectedFinancialTabIndex.intValue = index }) {
+                    selected = selectedTransactionTabIndex == index,
+                    onClick = { selectedTransactionTabIndex = index }) {
                     Text(text = financialTab, modifier = Modifier.padding(vertical = 10.dp))
                 }
             }
@@ -71,7 +71,7 @@ fun HomeScreen(
                 .padding(top = 10.dp)
         ) {
             TabRow(
-                selectedTabIndex = selectedPeriodTabIndex.intValue
+                selectedTabIndex = selectedPeriodTabIndex
             ) {
                 listOf(
                     "Jour",
@@ -80,8 +80,8 @@ fun HomeScreen(
                     "Année",
                 ).forEachIndexed { index, period ->
                     Tab(
-                        selected = selectedPeriodTabIndex.intValue == index,
-                        onClick = { selectedPeriodTabIndex.intValue = index }) {
+                        selected = selectedPeriodTabIndex == index,
+                        onClick = { selectedPeriodTabIndex = index }) {
                         Text(text = period, modifier = Modifier.padding(vertical = 10.dp))
                     }
                 }
