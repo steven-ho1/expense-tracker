@@ -70,7 +70,7 @@ fun NewTransactionScreen(
             onValueChange = { amountInput = it },
             label = R.string.amount,
             keyboardOptions = KeyboardOptions.Default.copy(
-                keyboardType = KeyboardType.Number,
+                keyboardType = KeyboardType.Decimal,
                 imeAction = ImeAction.Done
             ),
             modifier = modifier.padding(vertical = 20.dp)
