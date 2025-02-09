@@ -14,4 +14,8 @@ interface TransactionDao {
     // Source utile: https://developer.android.com/reference/androidx/room/Query
     @Query("SELECT * FROM transactions WHERE type = :type")
     suspend fun getTransactionsByType(type: TransactionType): List<TransactionEntity>
+
+    @Query("SELECT * FROM transactions WHERE type = :type AND date >= :startDate ORDER BY date DESC")
+    suspend fun getTransactionsByPeriod(type: TransactionType, startDate: String): List<TransactionEntity>
+
 }
