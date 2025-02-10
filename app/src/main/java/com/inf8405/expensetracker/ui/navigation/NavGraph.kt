@@ -26,7 +26,7 @@ fun NavGraphBuilder.expenseTrackerNavGraph(
     }
 
     composable(route = ExpenseTrackerScreen.Categories.name) {
-        CategoriesScreen(mainViewModelsWrapper)
+        CategoriesScreen(mainViewModelsWrapper, navController)
     }
     composable(route = ExpenseTrackerScreen.Charts.name) {
         ChartsScreen()
