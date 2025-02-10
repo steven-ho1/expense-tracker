@@ -40,7 +40,7 @@ fun CategoriesScreen(
                 navController.navigate(ExpenseTrackerScreen.NewTransaction.name)
             },
             modifier = Modifier
-                .scale(0.8f)
+                .scale(1f)
                 .align(Alignment.BottomEnd)
                 .padding(8.dp),
             shape = CircleShape
