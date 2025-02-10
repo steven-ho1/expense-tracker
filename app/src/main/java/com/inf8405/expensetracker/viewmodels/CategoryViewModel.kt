@@ -11,8 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class CategoryViewModel : ViewModel() {
-    private val categoryRepository: CategoryRepository =
-        CategoryRepository(AppDatabase.instance.categoryDao())
+    private val categoryRepository: CategoryRepository = CategoryRepository(AppDatabase.instance.categoryDao())
     private val _expenseCategories = MutableStateFlow<List<CategoryEntity>>(emptyList())
     private val _incomeCategories = MutableStateFlow<List<CategoryEntity>>(emptyList())
 
