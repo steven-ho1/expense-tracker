@@ -37,7 +37,7 @@ fun CategoriesScreen(
 
         FloatingActionButton(
             onClick = {
-                navController.navigate(ExpenseTrackerScreen.NewTransaction.name)
+                navController.navigate(ExpenseTrackerScreen.AddCategory.name)
             },
             modifier = Modifier
                 .scale(1f)
