@@ -8,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import com.inf8405.expensetracker.database.AppDatabase
 import com.inf8405.expensetracker.ui.ExpenseTrackingApp
 import com.inf8405.expensetracker.ui.theme.ExpenseTrackerTheme
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -15,6 +16,9 @@ class MainActivity : ComponentActivity() {
             super.onCreate(savedInstanceState)
 
             AppDatabase.init(context = this)
+
+            val config = resources.configuration
+            config.setLocale(Locale.CANADA_FRENCH)
 
             enableEdgeToEdge()
             setContent {

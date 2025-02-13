@@ -10,6 +10,6 @@ data class TransactionEntity(
     val amount: Double,
     val type: TransactionType,
     val category: String,
-    val date: String
+    val date: Long
 )
 
