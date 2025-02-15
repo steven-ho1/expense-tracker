@@ -31,7 +31,7 @@ fun CategoriesScreen(
             .padding(16.dp)
     ) {
         Text(
-            text = "Page des catégories",
+            text = "Page des catégorie",
             modifier = Modifier.align(Alignment.Center)
         )
 
