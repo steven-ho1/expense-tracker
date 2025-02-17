@@ -1,0 +1,145 @@
+package com.inf8405.expensetracker.ui.screens
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.inf8405.expensetracker.models.MainViewModelsWrapper
+import com.inf8405.expensetracker.viewmodels.AddCategoryViewModel
+
+enum class TransactionType {
+    EXPENSES,
+    INCOME
+}
+
+@Composable
+fun AddCategoryScreen(
+    mainViewModelsWrapper: MainViewModelsWrapper,
+    navController: NavController,
+    addCategoryViewModel: AddCategoryViewModel = viewModel()
+) {
+    var categoryName by remember { mutableStateOf("") }
+    var selectedTransactionType by remember { mutableStateOf(TransactionType.EXPENSES) }
+    var selectedColor by remember { mutableStateOf<Color?>(null) }
+    var errorMessage by remember { mutableStateOf("") }
+
+    val colorOptions = listOf(
+        Color.Yellow,
+        Color.Green,
+        Color.Blue,
+        Color.Red,
+        Color(0xFFFFC0CB), // Pink
+        Color(0xFF90EE90), // LightGreen
+        Color(0xFFADD8E6)  // LightBlue
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+
+        OutlinedTextField(
+            value = categoryName,
+            onValueChange = { categoryName = it },
+            label = { Text("Category Name") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(text = "Category Type")
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(vertical = 8.dp)
+        ) {
+            RadioButton(
+                selected = (selectedTransactionType == TransactionType.EXPENSES),
+                onClick = { selectedTransactionType = TransactionType.EXPENSES }
+            )
+            Text(
+                text = "Expense",
+                modifier = Modifier
+                    .clickable { selectedTransactionType = TransactionType.EXPENSES }
+                    .padding(end = 16.dp)
+            )
+            RadioButton(
+                selected = (selectedTransactionType == TransactionType.INCOME),
+                onClick = { selectedTransactionType = TransactionType.INCOME }
+            )
+            Text(
+                text = "Income",
+                modifier = Modifier
+                    .clickable { selectedTransactionType = TransactionType.INCOME }
+            )
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(text = "Select a Color")
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+        ) {
+            colorOptions.forEach { color ->
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(color)
+                        .clickable { selectedColor = color }
+                        .border(
+                            width = if (selectedColor == color) 2.dp else 0.dp,
+                            color = if (selectedColor == color) Color.Black else Color.Transparent,
+                            shape = CircleShape
+                        )
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (errorMessage.isNotEmpty()) {
+            Text(text = errorMessage, color = Color.Red)
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        Button(
+            onClick = {
+
+                if (categoryName.isBlank() || selectedColor == null) {
+                    errorMessage = "Please enter a category name and select a color."
+                    return@Button
+                }
+
+                addCategoryViewModel.addCategory(
+                    categoryName,
+                    selectedTransactionType,
+                    selectedColor!!
+                ) { error ->
+                    if (error != null) {
+                        errorMessage = error
+                    } else {
+                        errorMessage = ""
+                        navController.popBackStack()
+                    }
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Add Category")
+        }
+    }
+}

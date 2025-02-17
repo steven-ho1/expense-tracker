@@ -10,6 +10,7 @@ import com.inf8405.expensetracker.ui.screens.HomeScreen
 import com.inf8405.expensetracker.ui.screens.NewTransactionScreen
 import com.inf8405.expensetracker.ui.screens.ChartsScreen
 import com.inf8405.expensetracker.viewmodels.ChartsViewModel
+import com.inf8405.expensetracker.ui.screens.AddCategoryScreen
 
 
 fun NavGraphBuilder.expenseTrackerNavGraph(
@@ -19,20 +20,26 @@ fun NavGraphBuilder.expenseTrackerNavGraph(
     composable(route = ExpenseTrackerScreen.Home.name) {
         HomeScreen(mainViewModelsWrapper, navController)
     }
-
+    
     composable(route = ExpenseTrackerScreen.NewTransaction.name) {
         NewTransactionScreen(mainViewModelsWrapper, navController)
     }
 
     composable(route = ExpenseTrackerScreen.Categories.name) {
-        CategoriesScreen(mainViewModelsWrapper)
+        CategoriesScreen(mainViewModelsWrapper, navController)
     }
-//    composable(route = ExpenseTrackerScreen.Charts.name) {
+    composable(route = ExpenseTrackerScreen.Charts.name) {
+        ChartsScreen()
+    }
+    composable(route = ExpenseTrackerScreen.AddCategory.name) {
+        AddCategoryScreen(mainViewModelsWrapper, navController)
+    }
+    composable(route = ExpenseTrackerScreen.Charts.name) {
+        val chartsViewModel: ChartsViewModel = viewModel()
+        ChartsScreen(chartsViewModel)
+    }
+    //    composable(route = ExpenseTrackerScreen.Charts.name) {
 //        ChartsScreen()
 //    }
-   composable(route = ExpenseTrackerScreen.Charts.name) {
-       val chartsViewModel: ChartsViewModel = viewModel()
-       ChartsScreen(chartsViewModel)
-   }
     // TODO: Ajouter les autres routes/pages
 }
