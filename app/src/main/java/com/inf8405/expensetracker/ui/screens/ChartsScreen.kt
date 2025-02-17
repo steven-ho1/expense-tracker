@@ -11,10 +11,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.mikephil.charting.charts.BarChart
+import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 import com.inf8405.expensetracker.models.TransactionType
@@ -25,7 +27,6 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import formatUtcMillisToString
-
 
 // Fonction utilitaire pour formater la date d'une transaction.
 fun formatTransactionDate(dateString: String): String {
@@ -41,6 +42,7 @@ fun ChartsScreen(
    modifier: Modifier = Modifier
 ) {
    val chartData by chartsViewModel.chartData.collectAsState(initial = emptyList<BarEntry>())
+   val chartLabels by chartsViewModel.chartLabels.collectAsState(initial = emptyList<String>())
    val selectedType by chartsViewModel.selectedType.collectAsState(initial = TransactionType.EXPENSES)
    val selectedPeriod by chartsViewModel.selectedPeriod.collectAsState(initial = "Hebdomadaire")
    val selectedDetailsData by chartsViewModel.selectedDetails.collectAsState(initial = null as TransactionDetailsData?)
@@ -59,7 +61,7 @@ fun ChartsScreen(
                               (index == 1 && selectedType == TransactionType.INCOME),
                    onClick = {
                        val type = if (index == 0) TransactionType.EXPENSES else TransactionType.INCOME
-                       chartsViewModel.setTransactionType(type)
+                       chartsViewModel.setTransactionType(type)  // Utilisez chartsViewModel, et non chartsViewModels
                    }
                ) {
                    Text(text = title)
@@ -82,16 +84,27 @@ fun ChartsScreen(
 
        Spacer(modifier = Modifier.height(16.dp))
 
-       // Affichage du graphique via AndroidView (aucun changement sur l'affichage du graphique)
+       // Affichage du graphique via AndroidView
        AndroidView(
            factory = { context ->
                BarChart(context).apply {
-                   val dataSet = BarDataSet(chartData, "Transactions")
-                   dataSet.colors = listOf(
-                       Color.BLUE, Color.RED, Color.GREEN, Color.YELLOW, Color.CYAN, Color.MAGENTA
-                   )
+                   val dataSet = BarDataSet(chartData, "Transactions").apply {
+                       colors = listOf(
+                           Color.BLUE, Color.RED, Color.GREEN, Color.YELLOW, Color.CYAN, Color.MAGENTA
+                       )
+                       setDrawValues(false) // Désactive l'affichage des valeurs au-dessus des barres
+                   }
                    this.data = BarData(dataSet)
                    this.description.isEnabled = false
+
+                   // Configuration de l'axe X pour afficher les dates sous les barres
+                   this.xAxis.apply {
+                       valueFormatter = IndexAxisValueFormatter(chartLabels)
+                       granularity = 1f
+                       isGranularityEnabled = true
+                       position = XAxis.XAxisPosition.BOTTOM
+                       setDrawGridLines(false)
+                   }
 
                    this.setOnChartValueSelectedListener(object : OnChartValueSelectedListener {
                        override fun onValueSelected(e: Entry?, h: Highlight?) {
@@ -106,12 +119,19 @@ fun ChartsScreen(
                    this.invalidate()
                }
            },
-           update = { chart: BarChart ->
-               val dataSet = BarDataSet(chartData, "Transactions")
-               dataSet.colors = listOf(
-                   Color.BLUE, Color.RED, Color.GREEN, Color.YELLOW, Color.CYAN, Color.MAGENTA
-               )
+           update = { chart ->
+               val dataSet = BarDataSet(chartData, "Transactions").apply {
+                   colors = listOf(
+                       Color.BLUE, Color.RED, Color.GREEN, Color.YELLOW, Color.CYAN, Color.MAGENTA
+                   )
+                   setDrawValues(false)
+               }
                chart.data = BarData(dataSet)
+               chart.xAxis.apply {
+                   valueFormatter = IndexAxisValueFormatter(chartLabels)
+                   granularity = 1f
+                   isGranularityEnabled = true
+               }
                chart.invalidate()
            },
            modifier = Modifier
@@ -119,26 +139,52 @@ fun ChartsScreen(
                .height(300.dp)
        )
 
-       // Affichage des détails des transactions (la période et la liste des transactions avec leur date).
-       selectedDetailsData?.let { detailsData ->
-           if (detailsData.transactions.isNotEmpty()) {
-               Spacer(modifier = Modifier.height(16.dp))
-               Text(
-                   text = "Période : ${detailsData.periodRange}",
-                   style = MaterialTheme.typography.titleMedium
-               )
-               Spacer(modifier = Modifier.height(8.dp))
-               Column(modifier = Modifier.fillMaxWidth()) {
-                   detailsData.transactions.forEach { transaction ->
-                       Text(
-                           text = "${transaction.category} : ${transaction.amount}$ " +
-                                  "(${formatTransactionDate(formatUtcMillisToString(transaction.date))})",
-                           style = MaterialTheme.typography.bodyMedium,
-                           modifier = Modifier.padding(vertical = 2.dp)
-                       )
-                   }
-               }
-           }
-       }
-   }
+       // Affichage des détails des transactions (période et liste)
+        // Affichage amélioré des détails des transactions (période et liste)
+        selectedDetailsData?.let { detailsData ->
+            if (detailsData.transactions.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.medium,
+                    elevation = CardDefaults.cardElevation(4.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Période : ${detailsData.periodRange}",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        // Pour les listes longues, vous pouvez utiliser LazyColumn
+                        detailsData.transactions.forEach { transaction ->
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = transaction.category,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    Text(
+                                        text = "${transaction.amount}$",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = formatTransactionDate(formatUtcMillisToString(transaction.date)),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Divider()
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

@@ -20,11 +20,13 @@ class ChartsViewModel : ViewModel() {
    private val _selectedType = MutableStateFlow(TransactionType.EXPENSES)
    private val _selectedPeriod = MutableStateFlow("Hebdomadaire")
    private val _chartData = MutableStateFlow<List<BarEntry>>(emptyList())
+   private val _chartLabels = MutableStateFlow<List<String>>(emptyList())
    private val _selectedDetails = MutableStateFlow<TransactionDetailsData?>(null)
 
    val selectedType: StateFlow<TransactionType> = _selectedType
    val selectedPeriod: StateFlow<String> = _selectedPeriod
    val chartData: StateFlow<List<BarEntry>> = _chartData.asStateFlow()
+   val chartLabels: StateFlow<List<String>> = _chartLabels.asStateFlow()
    val selectedDetails: StateFlow<TransactionDetailsData?> = _selectedDetails.asStateFlow()
 
    init {
@@ -42,11 +44,14 @@ class ChartsViewModel : ViewModel() {
    }
 
    private fun loadTransactions() {
-       viewModelScope.launch {
-           chartsRepository.getTransactionsByPeriod(_selectedPeriod.value, _selectedType.value)
-               .collect { _chartData.value = it }
-       }
-   }
+    viewModelScope.launch {
+        chartsRepository.getTransactionsByPeriod(_selectedPeriod.value, _selectedType.value)
+            .collect { barChartData ->
+                _chartData.value = barChartData.entries
+                _chartLabels.value = barChartData.labels
+            }
+    }
+}
 
    fun selectBarEntry(barIndex: Int) {
        viewModelScope.launch {
