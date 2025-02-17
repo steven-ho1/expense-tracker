@@ -9,15 +9,22 @@ import kotlinx.coroutines.flow.flow
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import formatUtcMillisToString
 
-// Data class pour encapsuler la plage de dates et la liste des transactions détaillées.
+// Data class pour les détails des transactions (déjà présente)
 data class TransactionDetailsData(
     val periodRange: String,
     val transactions: List<TransactionEntity>
 )
 
+// Nouvelle data class pour les données du graphique
+data class BarChartData(
+    val entries: List<BarEntry>,
+    val labels: List<String>
+)
+
 // Formatter pour parser les dates stockées en chaîne de caractères dans la base.
-private val formatter = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH)
+private val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.ENGLISH)
 
 class ChartsRepository(private val transactionDao: TransactionDao) {
 
@@ -34,9 +41,9 @@ class ChartsRepository(private val transactionDao: TransactionDao) {
     }
 
     /**
-     * Retourne les données agrégées pour le graphique en fonction de la période et du type.
+     * Retourne les données agrégées pour le graphique ainsi que les labels d'axe X au format "dd-MM-yyyy".
      */
-    fun getTransactionsByPeriod(period: String, type: TransactionType): Flow<List<BarEntry>> = flow {
+    fun getTransactionsByPeriod(period: String, type: TransactionType): Flow<BarChartData> = flow {
         val today = LocalDate.now()
         val startDates = when (period) {
             "Journalier"    -> (0..5).map { today.minusDays(it.toLong()) }
@@ -45,23 +52,23 @@ class ChartsRepository(private val transactionDao: TransactionDao) {
             "Annuel"        -> (0..5).map { today.minusYears(it.toLong()) }
             else            -> emptyList()
         }.reversed() // Du plus ancien au plus récent.
-
+    
         val transactions = getTransactionsFromDb(type)
         val groupedData = startDates.mapIndexed { index, date ->
             val total = transactions
                 .filter {
                     when (period) {
-                        "Journalier" -> parseTransactionDate(it.date).isEqual(date)
+                        "Journalier" -> parseTransactionDate(formatUtcMillisToString(it.date)).isEqual(date)
                         "Hebdomadaire" -> {
-                            val txDate = parseTransactionDate(it.date)
+                            val txDate = parseTransactionDate(formatUtcMillisToString(it.date))
                             txDate >= date.minusDays(6) && txDate <= date
                         }
                         "Mensuel" -> {
-                            val txDate = parseTransactionDate(it.date)
+                            val txDate = parseTransactionDate(formatUtcMillisToString(it.date))
                             txDate.month == date.month && txDate.year == date.year
                         }
                         "Annuel" -> {
-                            val txDate = parseTransactionDate(it.date)
+                            val txDate = parseTransactionDate(formatUtcMillisToString(it.date))
                             txDate.year == date.year
                         }
                         else -> false
@@ -70,16 +77,21 @@ class ChartsRepository(private val transactionDao: TransactionDao) {
                 .sumOf { it.amount }
             BarEntry(index.toFloat(), total.toFloat())
         }
-        emit(groupedData)
+    
+        // Choix du format en fonction de la période sélectionnée
+        val outputFormatter = when (period) {
+            "Mensuel" -> DateTimeFormatter.ofPattern("MM-yyyy")
+            "Annuel"  -> DateTimeFormatter.ofPattern("yyyy")
+            else      -> DateTimeFormatter.ofPattern("dd-MM-yyyy")
+        }
+        val labels = startDates.map { it.format(outputFormatter) }
+    
+        emit(BarChartData(entries = groupedData, labels = labels))
     }
+    
 
     /**
-     * Retourne les détails des transactions et la plage de dates correspondant à la barre sélectionnée.
-     *
-     * @param period Le filtre de période ("Journalier", "Hebdomadaire", "Mensuel", "Annuel").
-     * @param type Le type de transaction (par exemple, TransactionType.EXPENSES ou TransactionType.INCOME).
-     * @param barIndex L'index de la barre cliquée dans le graphique.
-     * @return Un Flow émettant un TransactionDetailsData.
+     * Retourne les détails des transactions pour une barre sélectionnée.
      */
     fun getTransactionDetailsByBar(
         period: String,
@@ -95,7 +107,6 @@ class ChartsRepository(private val transactionDao: TransactionDao) {
             else            -> emptyList()
         }.reversed()
 
-        // Si l'index de barre est invalide, on émet des données vides.
         if (barIndex < 0 || barIndex >= startDates.size) {
             emit(TransactionDetailsData("", emptyList()))
             return@flow
@@ -105,24 +116,23 @@ class ChartsRepository(private val transactionDao: TransactionDao) {
         val transactions = getTransactionsFromDb(type)
         val details = when (period) {
             "Journalier" -> transactions.filter {
-                parseTransactionDate(it.date).isEqual(selectedDate)
+                parseTransactionDate(formatUtcMillisToString(it.date)).isEqual(selectedDate)
             }
             "Hebdomadaire" -> transactions.filter {
-                val txDate = parseTransactionDate(it.date)
+                val txDate = parseTransactionDate(formatUtcMillisToString(it.date))
                 txDate >= selectedDate.minusDays(6) && txDate <= selectedDate
             }
             "Mensuel" -> transactions.filter {
-                val txDate = parseTransactionDate(it.date)
+                val txDate = parseTransactionDate(formatUtcMillisToString(it.date))
                 txDate.month == selectedDate.month && txDate.year == selectedDate.year
             }
             "Annuel" -> transactions.filter {
-                val txDate = parseTransactionDate(it.date)
+                val txDate = parseTransactionDate(formatUtcMillisToString(it.date))
                 txDate.year == selectedDate.year
             }
             else -> emptyList()
         }
 
-        // Calcul de la plage de dates selon le filtre.
         val outputFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
         val periodRange = when (period) {
             "Journalier" -> "${selectedDate.format(outputFormatter)}"
