@@ -140,7 +140,6 @@ fun ChartsScreen(
        )
 
        // Affichage des détails des transactions (période et liste)
-        // Affichage amélioré des détails des transactions (période et liste)
         selectedDetailsData?.let { detailsData ->
             if (detailsData.transactions.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(16.dp))
