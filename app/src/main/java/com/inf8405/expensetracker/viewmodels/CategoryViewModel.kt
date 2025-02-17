@@ -1,5 +1,6 @@
 package com.inf8405.expensetracker.viewmodels
 
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.inf8405.expensetracker.database.AppDatabase
@@ -23,10 +24,31 @@ class CategoryViewModel : ViewModel() {
         loadCategories()
     }
 
-    fun addCategory(category: CategoryEntity) {
+    fun addCategory(
+        categoryName: String,
+        transactionType: TransactionType,
+        color: Color,
+        onResult: (errorMessage: String?) -> Unit
+    ) {
+
+        val dbTransactionType = TransactionType.valueOf(transactionType.name)
+        val colorHex = colorToHex(color)
+
+        val categoryEntity = CategoryEntity(
+            name = categoryName,
+            type = dbTransactionType,
+            color = colorHex
+        )
+
         viewModelScope.launch {
-            categoryRepository.insertCategory(category)
-            loadCategories()
+            val categories = categoryRepository.getCategories()
+            if (categories.any { it.name.equals(categoryName, ignoreCase = true) }) {
+                onResult("This category name already exists")
+            } else {
+                categoryRepository.insertCategory(categoryEntity)
+                onResult(null)
+                loadCategories()
+            }
         }
     }
 
@@ -37,6 +59,13 @@ class CategoryViewModel : ViewModel() {
             _expenseCategories.value = allCategories.filter { it.type == TransactionType.EXPENSES }
             _incomeCategories.value = allCategories.filter { it.type == TransactionType.INCOME }
         }
+    }
+
+    private fun colorToHex(color: Color): String {
+        val red = (color.red * 255).toInt()
+        val green = (color.green * 255).toInt()
+        val blue = (color.blue * 255).toInt()
+        return String.format("#%02X%02X%02X", red, green, blue)
     }
 }
 

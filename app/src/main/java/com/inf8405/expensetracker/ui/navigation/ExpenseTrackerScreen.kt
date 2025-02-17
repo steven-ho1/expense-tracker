@@ -9,5 +9,4 @@ enum class ExpenseTrackerScreen(@StringRes val title: Int) {
     Charts(title = R.string.charts),
     NewTransaction(title = R.string.add_transaction),
     AddCategory(title = R.string.add_category)
-    // TODO: Ajouter les autres routes/pages
 }

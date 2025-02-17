@@ -31,7 +31,7 @@ fun AppBar(
     TopAppBar(
         title = { Text(stringResource(currentScreen.title)) },
         navigationIcon = {
-            if (currentScreen == ExpenseTrackerScreen.NewTransaction) {
+            if (currentScreen == ExpenseTrackerScreen.NewTransaction || currentScreen == ExpenseTrackerScreen.AddCategory) {
                 IconButton(onClick = {
                     navController.navigateUp()
                 }) {
