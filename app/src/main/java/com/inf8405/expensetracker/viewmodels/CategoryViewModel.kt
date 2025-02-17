@@ -12,7 +12,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class CategoryViewModel : ViewModel() {
-    private val categoryRepository: CategoryRepository = CategoryRepository(AppDatabase.instance.categoryDao())
+    private val categoryRepository: CategoryRepository =
+        CategoryRepository(AppDatabase.instance.categoryDao())
     private val _expenseCategories = MutableStateFlow<List<CategoryEntity>>(emptyList())
     private val _incomeCategories = MutableStateFlow<List<CategoryEntity>>(emptyList())
 
@@ -51,13 +52,63 @@ class CategoryViewModel : ViewModel() {
             }
         }
     }
-
+    
     private fun loadCategories() {
-        viewModelScope.launch {
-            val allCategories = categoryRepository.getCategories()
+        val defaultExpenseCategories = listOf(
+            CategoryEntity(
+                name = "Alimentation",
+                type = TransactionType.EXPENSES,
+                color = "#FF5733" // Orange
+            ),
+            CategoryEntity(
+                name = "Transport",
+                type = TransactionType.EXPENSES,
+                color = "#33FF57" // Vert
+            ),
+            CategoryEntity(
+                name = "Loisirs",
+                type = TransactionType.EXPENSES,
+                color = "#FF33A1" // Rose
+            ),
+            CategoryEntity(
+                name = "Logement",
+                type = TransactionType.EXPENSES,
+                color = "#3357FF" // Bleu
+            )
+        )
 
-            _expenseCategories.value = allCategories.filter { it.type == TransactionType.EXPENSES }
-            _incomeCategories.value = allCategories.filter { it.type == TransactionType.INCOME }
+        val defaultIncomeCategories = listOf(
+            CategoryEntity(
+                name = "Salaire",
+                type = TransactionType.INCOME,
+                color = "#4CAF50" // Vert
+            ),
+            CategoryEntity(
+                name = "Prime",
+                type = TransactionType.INCOME,
+                color = "#FFEB3B" // Jaune
+            ),
+            CategoryEntity(
+                name = "Investissements",
+                type = TransactionType.INCOME,
+                color = "#2196F3" // Bleu
+            ),
+            CategoryEntity(
+                name = "Cadeaux reçus",
+                type = TransactionType.INCOME,
+                color = "#E91E63" // Rose
+            )
+        )
+
+        viewModelScope.launch {
+            val databaseCategories = categoryRepository.getCategories()
+            val allExpenseCategories =
+                defaultExpenseCategories + databaseCategories.filter { it.type == TransactionType.EXPENSES }
+            val allIncomeCategories =
+                defaultIncomeCategories + databaseCategories.filter { it.type == TransactionType.INCOME }
+
+            _expenseCategories.value = allExpenseCategories
+            _incomeCategories.value = allIncomeCategories
         }
     }
 
