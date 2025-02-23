@@ -1,5 +1,5 @@
 [versions]
-agp = "8.2.1"
+agp = "8.8.1"
 kotlin = "2.1.10"
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -8,9 +8,9 @@ espressoCore = "3.6.1"
 kotlinGradlePlugin = "2.1.10"
 lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.10.0"
-composeBom = "2025.01.01"
+composeBom = "2025.02.00"
 mpandroidchart = "v3.1.0"
-navigationCompose = "2.8.6"
+navigationCompose = "2.8.7"
 roomRuntime = "2.6.1"
 
 [libraries]

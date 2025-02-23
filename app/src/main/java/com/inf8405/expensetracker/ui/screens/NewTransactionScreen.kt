@@ -1,18 +1,25 @@
 package com.inf8405.expensetracker.ui.screens
 
-import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -20,8 +27,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -30,8 +36,12 @@ import com.inf8405.expensetracker.R
 import com.inf8405.expensetracker.database.entities.TransactionEntity
 import com.inf8405.expensetracker.models.MainViewModelsWrapper
 import com.inf8405.expensetracker.models.TransactionType
+import com.inf8405.expensetracker.ui.components.CategoryList
+import com.inf8405.expensetracker.ui.components.DatePickerModal
+import com.inf8405.expensetracker.ui.components.NumberField
+import com.inf8405.expensetracker.viewmodels.CategoryViewModel
 import com.inf8405.expensetracker.viewmodels.TransactionViewModel
-import java.util.Date
+import formatUtcMillisToString
 
 @Composable
 fun NewTransactionScreen(
@@ -39,12 +49,21 @@ fun NewTransactionScreen(
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
-    // val categoryViewModel: CategoryViewModel = mainViewModelsWrapper.categoryViewModel;
-    val transactionViewModel: TransactionViewModel = mainViewModelsWrapper.transactionViewModel;
+    val categoryViewModel: CategoryViewModel = mainViewModelsWrapper.categoryViewModel
+    val transactionViewModel: TransactionViewModel = mainViewModelsWrapper.transactionViewModel
 
     var amountInput by rememberSaveable { mutableStateOf("") }
     var selectedTransactionTabIndex by rememberSaveable { mutableIntStateOf(0) }
     val isAmountValid = amountInput.toDoubleOrNull() != null
+
+    val expenseCategories by categoryViewModel.expenseCategories.collectAsState()
+    val incomeCategories by categoryViewModel.incomeCategories.collectAsState()
+    val categories = if (selectedTransactionTabIndex == 0) expenseCategories else incomeCategories
+    var selectedCategory by rememberSaveable { mutableStateOf<String?>(null) }
+
+    var selectedDateMillis by rememberSaveable { mutableStateOf<Long?>(null) }
+    var showDatePicker by rememberSaveable { mutableStateOf(false) }
+
 
     Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
         TabRow(
@@ -58,11 +77,16 @@ fun NewTransactionScreen(
             ).forEachIndexed { index, financialTab ->
                 Tab(
                     selected = selectedTransactionTabIndex == index,
-                    onClick = { selectedTransactionTabIndex = index }) {
+                    onClick = {
+                        selectedTransactionTabIndex = index
+                        selectedCategory = null
+                    }) {
                     Text(text = financialTab, modifier = Modifier.padding(vertical = 10.dp))
                 }
             }
         }
+
+        Spacer(modifier = modifier.height(20.dp))
 
         NumberField(
             leadingIcon = R.drawable.attach_money_24dp,
@@ -72,9 +96,53 @@ fun NewTransactionScreen(
             keyboardOptions = KeyboardOptions.Default.copy(
                 keyboardType = KeyboardType.Decimal,
                 imeAction = ImeAction.Done
-            ),
-            modifier = modifier.padding(vertical = 20.dp)
+            )
         )
+
+        Spacer(modifier = modifier.height(20.dp))
+
+        CategoryList(
+            navController = navController,
+            categories = categories,
+            selectedCategory = selectedCategory
+        ) { category ->
+            println(category)
+            println(selectedCategory)
+            selectedCategory = category
+        }
+
+        Spacer(modifier = modifier.height(20.dp))
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            if (selectedDateMillis != null) {
+                Text(formatUtcMillisToString(selectedDateMillis!!))
+            } else {
+                Text("Aucune date choisie")
+            }
+
+            IconButton(
+                onClick = { showDatePicker = true },
+                modifier = Modifier
+                    .background(Color.Gray, shape = CircleShape),
+            ) {
+                Icon(Icons.Default.DateRange, contentDescription = "Calendar", tint = Color.White)
+            }
+
+            if (showDatePicker) {
+                DatePickerModal(
+                    selectedDate = selectedDateMillis,
+                    onDateSelected = { dateMillis ->
+                        selectedDateMillis = dateMillis
+                    },
+                    onDismiss = { showDatePicker = false }
+                )
+            }
+        }
+
+        Spacer(modifier = modifier.height(40.dp))
 
         Button(
             onClick = {
@@ -83,44 +151,19 @@ fun NewTransactionScreen(
                 else
                     TransactionType.INCOME
 
-                // TODO Ajouter catégories et revoir date
                 val newTransaction = TransactionEntity(
                     amount = amountInput.toDoubleOrNull() ?: 0.0,
                     type = transactionType,
-                    category = "TODO",
-                    date = Date().toString()
+                    category = selectedCategory!!,
+                    date = selectedDateMillis!!
                 )
                 transactionViewModel.addTransaction(newTransaction)
                 navController.navigateUp()
             },
-            enabled = isAmountValid
+            enabled = isAmountValid && selectedDateMillis !== null && selectedCategory !== null
         ) {
-            Text(text = "Ajouter")
+            Text(text = "Ajouter la transaction")
         }
     }
 }
 
-@Composable
-fun NumberField(
-    @StringRes label: Int,
-    @DrawableRes leadingIcon: Int,
-    value: String,
-    onValueChange: (String) -> Unit,
-    keyboardOptions: KeyboardOptions,
-    modifier: Modifier = Modifier
-) {
-    TextField(
-        singleLine = true,
-        label = { Text(stringResource(label)) },
-        leadingIcon = {
-            Icon(
-                painter = painterResource(id = leadingIcon),
-                "Icon",
-            )
-        },
-        value = value,
-        onValueChange = onValueChange,
-        keyboardOptions = keyboardOptions,
-        modifier = modifier
-    )
-}
