@@ -48,12 +48,12 @@ fun CategoriesScreen(
                 Tab(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
-                    text = { Text("EXPENSES") }
+                    text = { Text("Dépenses") }
                 )
                 Tab(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
-                    text = { Text("INCOME") }
+                    text = { Text("Revenus") }
                 )
             }
 
