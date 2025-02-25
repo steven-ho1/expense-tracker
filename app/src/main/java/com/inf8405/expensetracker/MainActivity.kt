@@ -13,6 +13,7 @@ import java.util.Locale
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 
 class MainActivity : ComponentActivity() {
@@ -29,7 +30,7 @@ class MainActivity : ComponentActivity() {
 
             setContent {
                 ExpenseTrackerTheme {
-                    var showSplash by remember { mutableStateOf(true) }
+                    var showSplash by rememberSaveable { mutableStateOf(true) }
 
                     if (showSplash) {
                         SplashScreen(onTimeout = { showSplash = false })
