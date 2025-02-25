@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
@@ -27,8 +29,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.inf8405.expensetracker.R
 import com.inf8405.expensetracker.models.MainViewModelsWrapper
 import com.inf8405.expensetracker.models.TransactionType
 import com.inf8405.expensetracker.viewmodels.CategoryViewModel
@@ -46,13 +50,13 @@ fun AddCategoryScreen(
     var errorMessage by remember { mutableStateOf("") }
 
     val colorOptions = listOf(
-        Color.Yellow,
-        Color.Green,
-        Color.Blue,
-        Color.Red,
-        Color(0xFFFFC0CB), // Pink
-        Color(0xFF90EE90), // LightGreen
-        Color(0xFFADD8E6)  // LightBlue
+        colorResource(id = R.color.color_option1),
+        colorResource(id = R.color.color_option2),
+        colorResource(id = R.color.color_option3),
+        colorResource(id = R.color.color_option4),
+        colorResource(id = R.color.color_option5),
+        colorResource(id = R.color.color_option6),
+        colorResource(id = R.color.color_option7)
     )
 
     Column(
@@ -97,27 +101,28 @@ fun AddCategoryScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(text = "Select a Color")
-        Row(
+        LazyRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp)
         ) {
-            colorOptions.forEach { color ->
+            items(colorOptions) { color ->
                 Box(
                     modifier = Modifier
-                        .size(48.dp)
+                        .size(40.dp)
                         .clip(CircleShape)
                         .background(color)
                         .clickable { selectedColor = color }
                         .border(
-                            width = if (selectedColor == color) 2.dp else 0.dp,
+                            width = if (selectedColor == color) 3.dp else 0.dp,
                             color = if (selectedColor == color) Color.Black else Color.Transparent,
                             shape = CircleShape
                         )
                 )
             }
         }
+
         Spacer(modifier = Modifier.height(16.dp))
 
         if (errorMessage.isNotEmpty()) {
