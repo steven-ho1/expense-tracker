@@ -1,5 +1,7 @@
 package com.inf8405.expensetracker.ui.screens
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -33,8 +35,11 @@ import com.inf8405.expensetracker.ui.navigation.ExpenseTrackerScreen
 import com.inf8405.expensetracker.utils.groupByCategory
 import com.inf8405.expensetracker.viewmodels.CategoryViewModel
 import com.inf8405.expensetracker.viewmodels.TransactionViewModel
+import filterTransactionsByPeriod
+import getPeriodText
 import java.util.Locale
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomeScreen(
     mainViewModelsWrapper: MainViewModelsWrapper,
@@ -52,11 +57,11 @@ fun HomeScreen(
     var selectedTransactionTabIndex by rememberSaveable { mutableIntStateOf(0) }
     var selectedPeriodTabIndex by rememberSaveable { mutableIntStateOf(1) }
 
-    // TODO Need period
-    val expensesByCategory = groupByCategory(expenses, expenseCategories)
-    val incomeByCategory = groupByCategory(income, incomeCategories)
-    val transactionGroups =
-        if (selectedTransactionTabIndex == 0) expensesByCategory else incomeByCategory
+    val transactions = if (selectedTransactionTabIndex == 0) expenses else income
+    val filteredTransactions = filterTransactionsByPeriod(transactions, selectedPeriodTabIndex)
+    val categories = if (selectedTransactionTabIndex == 0) expenseCategories else incomeCategories
+
+    val transactionGroups = groupByCategory(filteredTransactions, categories)
 
     Column(
         modifier = modifier
@@ -105,10 +110,17 @@ fun HomeScreen(
 
             }
 
+            Text(
+                text = getPeriodText(selectedPeriodTabIndex),
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(vertical = 10.dp),
+            )
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 10.dp)
+                    .padding(bottom = 10.dp)
             ) {
                 TransactionPieChart(
                     transactionGroups,
@@ -133,4 +145,7 @@ fun HomeScreen(
         TransactionGroupList(transactionGroups, modifier)
     }
 }
+
+
+
 

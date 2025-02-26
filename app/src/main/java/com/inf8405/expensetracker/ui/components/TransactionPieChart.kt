@@ -31,13 +31,13 @@ fun TransactionPieChart(
 
 
     Box(
-        modifier = modifier.size(200.dp),
+        modifier = modifier.size(180.dp),
         contentAlignment = Alignment.Center
     ) {
         PieChart(
             modifier = modifier.fillMaxSize(),
             data = data,
-            style = Pie.Style.Stroke(width = 30.dp),
+            style = Pie.Style.Stroke(width = 25.dp),
             spaceDegree = 1.5f
         )
 
