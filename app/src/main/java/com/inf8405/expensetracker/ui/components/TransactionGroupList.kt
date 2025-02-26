@@ -27,7 +27,7 @@ import java.util.Locale
 fun TransactionGroupList(transactionGroups: List<TransactionGroup>, modifier: Modifier = Modifier) {
     LazyColumn(
         modifier = modifier
-            .padding(vertical = 20.dp)
+            .padding(vertical = 15.dp)
             .fillMaxWidth()
     ) {
         transactionGroups.forEach { transactionGroup ->

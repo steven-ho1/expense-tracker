@@ -142,7 +142,7 @@ fun HomeScreen(
             }
         }
 
-        TransactionGroupList(transactionGroups, modifier)
+        TransactionGroupList(transactionGroups)
     }
 }
 
