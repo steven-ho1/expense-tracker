@@ -1,16 +1,11 @@
 package com.inf8405.expensetracker.ui.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -28,18 +23,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.inf8405.expensetracker.database.entities.CategoryEntity
-import com.inf8405.expensetracker.database.entities.TransactionEntity
 import com.inf8405.expensetracker.models.MainViewModelsWrapper
-import com.inf8405.expensetracker.models.TransactionGroup
 import com.inf8405.expensetracker.models.TransactionType
+import com.inf8405.expensetracker.ui.components.TransactionGroupList
 import com.inf8405.expensetracker.ui.components.TransactionPieChart
 import com.inf8405.expensetracker.ui.navigation.ExpenseTrackerScreen
-import com.inf8405.expensetracker.utils.toColor
+import com.inf8405.expensetracker.utils.groupByCategory
 import com.inf8405.expensetracker.viewmodels.CategoryViewModel
 import com.inf8405.expensetracker.viewmodels.TransactionViewModel
 import java.util.Locale
@@ -139,84 +130,7 @@ fun HomeScreen(
             }
         }
 
-        LazyColumn(
-            modifier = modifier
-                .padding(vertical = 20.dp)
-                .fillMaxWidth()
-        ) {
-            transactionGroups.forEach { transactionGroup ->
-                item {
-                    ElevatedCard(
-                        modifier = modifier
-                            .fillMaxWidth()
-                    ) {
-                        Row(
-                            modifier = modifier.padding(8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(30.dp)
-                                    .clip(CircleShape)
-                                    .background(transactionGroup.categoryColor.toColor())
-                            )
-
-                            Row(
-                                modifier = modifier
-                                    .fillMaxWidth()
-                                    .padding(start = 10.dp),
-                            ) {
-                                Text(
-                                    text = transactionGroup.categoryName,
-                                    modifier = modifier.weight(1f),
-                                )
-
-                                Text(
-                                    text = String.format(
-                                        Locale.CANADA_FRENCH,
-                                        "%.2f%%",
-                                        transactionGroup.contributionPercentage
-                                    ),
-                                    modifier = modifier.width(70.dp),
-                                    textAlign = TextAlign.Center
-                                )
-
-                                Text(
-                                    text = String.format(
-                                        Locale.CANADA_FRENCH,
-                                        "%.2f$",
-                                        transactionGroup.categoryTotalAmount
-                                    ),
-                                    modifier = modifier.width(90.dp),
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                        }
-                    }
-                    Spacer(modifier = modifier.height(10.dp))
-                }
-            }
-        }
+        TransactionGroupList(transactionGroups, modifier)
     }
 }
 
-fun groupByCategory(
-    transactions: List<TransactionEntity>,
-    categories: List<CategoryEntity>
-): List<TransactionGroup> {
-    val transactionGroups = transactions
-        .groupBy { it.category }
-        .map { (categoryName, transactions) ->
-            val categoryTotalAmount = transactions.sumOf { it.amount }
-            val categoryColor = categories.find { it.name == categoryName }?.color ?: "#000000"
-
-            TransactionGroup(categoryName, categoryTotalAmount, categoryColor)
-        }
-    val totalAmount = transactionGroups.sumOf { it.categoryTotalAmount }
-
-    transactionGroups.forEach {
-        it.contributionPercentage = it.categoryTotalAmount / totalAmount * 100
-    }
-
-    return transactionGroups
-}
