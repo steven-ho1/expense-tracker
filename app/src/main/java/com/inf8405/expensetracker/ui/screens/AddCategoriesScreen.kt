@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,6 +37,8 @@ import com.inf8405.expensetracker.R
 import com.inf8405.expensetracker.models.MainViewModelsWrapper
 import com.inf8405.expensetracker.models.TransactionType
 import com.inf8405.expensetracker.viewmodels.CategoryViewModel
+import androidx.compose.runtime.saveable.Saver
+
 
 @Composable
 fun AddCategoryScreen(
@@ -43,11 +46,15 @@ fun AddCategoryScreen(
     navController: NavController,
 ) {
     val categoryViewModel: CategoryViewModel = mainViewModelsWrapper.categoryViewModel
+    val ColorNullableSaver: Saver<Color?, Long> = Saver(
+        save = { color -> color?.value?.toLong() ?: -1L },
+        restore = { value -> if (value == -1L) null else Color(value.toULong()) }
+    )
+    var categoryName by rememberSaveable { mutableStateOf("") }
+    var selectedTransactionType by rememberSaveable { mutableStateOf(TransactionType.EXPENSES) }
+    var selectedColor by rememberSaveable(stateSaver = ColorNullableSaver) { mutableStateOf<Color?>(null) }
+    var errorMessage by rememberSaveable { mutableStateOf("") }
 
-    var categoryName by remember { mutableStateOf("") }
-    var selectedTransactionType by remember { mutableStateOf(TransactionType.EXPENSES) }
-    var selectedColor by remember { mutableStateOf<Color?>(null) }
-    var errorMessage by remember { mutableStateOf("") }
 
     val colorOptions = listOf(
         colorResource(id = R.color.color_option1),
