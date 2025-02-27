@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.inf8405.expensetracker.database.AppDatabase
 import com.inf8405.expensetracker.database.entities.CategoryEntity
 import com.inf8405.expensetracker.database.repositories.CategoryRepository
+import com.inf8405.expensetracker.models.DefaultCategories
 import com.inf8405.expensetracker.models.TransactionType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -52,60 +53,16 @@ class CategoryViewModel : ViewModel() {
             }
         }
     }
-    
-    private fun loadCategories() {
-        val defaultExpenseCategories = listOf(
-            CategoryEntity(
-                name = "Alimentation",
-                type = TransactionType.EXPENSES,
-                color = "#FF5733" // Orange
-            ),
-            CategoryEntity(
-                name = "Transport",
-                type = TransactionType.EXPENSES,
-                color = "#33FF57" // Vert
-            ),
-            CategoryEntity(
-                name = "Loisirs",
-                type = TransactionType.EXPENSES,
-                color = "#FF33A1" // Rose
-            ),
-            CategoryEntity(
-                name = "Logement",
-                type = TransactionType.EXPENSES,
-                color = "#3357FF" // Bleu
-            )
-        )
 
-        val defaultIncomeCategories = listOf(
-            CategoryEntity(
-                name = "Salaire",
-                type = TransactionType.INCOME,
-                color = "#4CAF50" // Vert
-            ),
-            CategoryEntity(
-                name = "Prime",
-                type = TransactionType.INCOME,
-                color = "#FFEB3B" // Jaune
-            ),
-            CategoryEntity(
-                name = "Investissements",
-                type = TransactionType.INCOME,
-                color = "#2196F3" // Bleu
-            ),
-            CategoryEntity(
-                name = "Cadeaux reçus",
-                type = TransactionType.INCOME,
-                color = "#E91E63" // Rose
-            )
-        )
+    private fun loadCategories() {
+
 
         viewModelScope.launch {
             val databaseCategories = categoryRepository.getCategories()
             val allExpenseCategories =
-                defaultExpenseCategories + databaseCategories.filter { it.type == TransactionType.EXPENSES }
+                DefaultCategories.expenseCategories + databaseCategories.filter { it.type == TransactionType.EXPENSES }
             val allIncomeCategories =
-                defaultIncomeCategories + databaseCategories.filter { it.type == TransactionType.INCOME }
+                DefaultCategories.incomeCategories + databaseCategories.filter { it.type == TransactionType.INCOME }
 
             _expenseCategories.value = allExpenseCategories
             _incomeCategories.value = allIncomeCategories

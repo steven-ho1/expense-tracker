@@ -1,5 +1,8 @@
 [versions]
 agp = "8.8.1"
+composeCharts = "latest_version"
+composechartsVersion = "1.0.0"
+githubComposeCharts = "0.1.2"
 kotlin = "2.1.10"
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -18,6 +21,9 @@ androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = 
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomRuntime" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomRuntime" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
+compose-charts = { module = "io.github.ehsannarmani:compose-charts", version.ref = "composeCharts" }
+compose-charts-v012 = { module = "io.github.ehsannarmani:compose-charts", version.ref = "githubComposeCharts" }
+composecharts = { module = "com.github.ehsannarmani:composecharts", version.ref = "composechartsVersion" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }

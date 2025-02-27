@@ -80,7 +80,7 @@ fun CategoryItem(category: CategoryEntity, isCategorySelected: Boolean) {
                 .then(
                     if (isCategorySelected) {
                         Modifier.border(
-                            width = 2.dp,
+                            width = 3.dp,
                             color = Color.Black,
                             shape = CircleShape
                         )
