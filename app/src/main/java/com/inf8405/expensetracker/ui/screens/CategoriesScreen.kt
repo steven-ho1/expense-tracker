@@ -38,12 +38,12 @@ fun CategoriesScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFFFFFF))
+                .background(Color(0xFF2D4F3C))
         ) {
             TabRow(
                 selectedTabIndex = selectedTab,
-                containerColor = Color(0xFFFFFFFF),
-                contentColor = Color.Black
+                containerColor = Color(0xFF2D4F3C),
+                contentColor = Color.White
             ) {
                 Tab(
                     selected = selectedTab == 0,
@@ -121,7 +121,7 @@ fun CategoryItem(
 
         Text(
             text = category.name,
-            color = Color.Black,
+            color = Color.White,
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 8.dp)
