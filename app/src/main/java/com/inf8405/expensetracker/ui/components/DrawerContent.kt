@@ -28,6 +28,7 @@ fun DrawerContent(
         Column(
             modifier = Modifier
                 .padding(horizontal = 20.dp)
+                .padding(top = 40.dp)
                 .verticalScroll(rememberScrollState())
         ) {
             NavigationDrawerItem(
