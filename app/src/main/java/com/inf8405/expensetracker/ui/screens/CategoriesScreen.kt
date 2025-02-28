@@ -24,22 +24,34 @@ import com.inf8405.expensetracker.viewmodels.CategoryViewModel
 import com.inf8405.expensetracker.database.entities.CategoryEntity
 import com.inf8405.expensetracker.ui.navigation.ExpenseTrackerScreen
 
+/**
+ * Écran principal pour afficher et gérer les catégories
+ * @param mainViewModelsWrapper Conteneur de ViewModels pour accéder aux données
+ * @param navController Contrôleur de navigation pour naviguer entre les écrans
+ */
 @Composable
 fun CategoriesScreen(
     mainViewModelsWrapper: MainViewModelsWrapper,
     navController: NavController,
 ) {
+    // État pour suivre l'onglet sélectionné (0 pour dépenses, 1 pour revenus)
     var selectedTab by remember { mutableStateOf(0) }
+
+    // Récupération du ViewModel des catégories
     val categoryViewModel: CategoryViewModel = mainViewModelsWrapper.categoryViewModel
+
+    // Observation des listes de catégories avec collectAsState()
     val expenseCategories by categoryViewModel.expenseCategories.collectAsState()
     val incomeCategories by categoryViewModel.incomeCategories.collectAsState()
 
+    // Conteneur principal
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF2D4F3C))
+                .background(Color(0xFF2D4F3C)) // Couleur de fond verte foncée
         ) {
+            // Barre d'onglets pour basculer entre dépenses et revenus
             TabRow(
                 selectedTabIndex = selectedTab,
                 containerColor = Color(0xFF2D4F3C),
@@ -57,18 +69,22 @@ fun CategoriesScreen(
                 )
             }
 
+            // Zone de contenu qui affiche la grille de catégories
             Box(modifier = Modifier.weight(1f)) {
                 CategoriesGrid(
+                    // Affiche les catégories de dépenses ou de revenus selon l'onglet sélectionné
                     categories = if (selectedTab == 0) expenseCategories else incomeCategories,
                     onCategoryClick = { category ->
-                        // Handle category selection
+                        // Gestion du clic sur une catégorie (à implémenter)
                     }
                 )
             }
         }
 
+        // Bouton d'action flottant pour ajouter une nouvelle catégorie
         FloatingActionButton(
             onClick = {
+                // Navigation vers l'écran d'ajout de catégorie
                 navController.navigate(ExpenseTrackerScreen.AddCategory.name)
             },
             modifier = Modifier
@@ -82,16 +98,23 @@ fun CategoriesScreen(
     }
 }
 
+/**
+ * Composant qui affiche une grille de catégories
+ * @param categories Liste des catégories à afficher
+ * @param onCategoryClick Fonction de rappel lors du clic sur une catégorie
+ */
 @Composable
 fun CategoriesGrid(
     categories: List<CategoryEntity>,
     onCategoryClick: (CategoryEntity) -> Unit
 ) {
+    // Grille verticale avec 3 colonnes
     LazyVerticalGrid(
         columns = GridCells.Fixed(3),
         contentPadding = PaddingValues(16.dp),
         modifier = Modifier.fillMaxSize()
     ) {
+        // Génère un élément pour chaque catégorie dans la liste
         items(categories) { category ->
             CategoryItem(
                 category = category,
@@ -101,17 +124,24 @@ fun CategoriesGrid(
     }
 }
 
+/**
+ * Élément individuel représentant une catégorie
+ * @param category Entité de catégorie à afficher
+ * @param onClick Fonction de rappel lors du clic sur cet élément
+ */
 @Composable
 fun CategoryItem(
     category: CategoryEntity,
     onClick: () -> Unit
 ) {
+    // Disposition en colonne pour aligner l'icône et le texte
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .padding(8.dp)
             .clickable(onClick = onClick)
     ) {
+        // Cercle coloré représentant la catégorie
         Box(
             modifier = Modifier
                 .size(80.dp)
@@ -119,6 +149,7 @@ fun CategoryItem(
                 .background(Color(android.graphics.Color.parseColor(category.color)))
         )
 
+        // Nom de la catégorie
         Text(
             text = category.name,
             color = Color.White,
