@@ -11,37 +11,42 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import formatUtcMillisToString
 
-// Data class pour les détails des transactions (déjà présente)
+// Data class pour stocker les transactions d'une période spécifique
 data class TransactionDetailsData(
     val periodRange: String,
     val transactions: List<TransactionEntity>
 )
 
-// Nouvelle data class pour les données du graphique
+// Data class pour contenir les données d'un graphique en barres
 data class BarChartData(
     val entries: List<BarEntry>,
     val labels: List<String>
 )
 
-// Formatter pour parser les dates stockées en chaîne de caractères dans la base.
 private val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.ENGLISH)
 
 class ChartsRepository(private val transactionDao: TransactionDao) {
-
-    // Convertit une chaîne de caractères en LocalDate.
+    /**
+     * Convertit une date sous forme de chaîne en LocalDate.
+     * Input: String (format "dd-MM-yyyy")
+     * Output: LocalDate
+     */
     private fun parseTransactionDate(dateString: String): LocalDate {
         return LocalDate.parse(dateString, formatter)
     }
-
     /**
-     * Récupère les transactions depuis la base de données pour un type donné.
+     * Récupère les transactions d'un type spécifique depuis la base de données.
+     * Input: TransactionType
+     * Output: Liste de TransactionEntity
      */
     private suspend fun getTransactionsFromDb(type: TransactionType): List<TransactionEntity> {
         return transactionDao.getTransactionsByType(type)
     }
 
     /**
-     * Retourne les données agrégées pour le graphique ainsi que les labels d'axe X au format "dd-MM-yyyy".
+     * Génère les données pour un graphique en barres en fonction d'une période et d'un type de transaction.
+     * Input: période (Journalier, Hebdomadaire, Mensuel, Annuel), type de transaction
+     * Output: Flow contenant BarChartData (données et labels pour le graphique)
      */
     fun getTransactionsByPeriod(period: String, type: TransactionType): Flow<BarChartData> = flow {
         val today = LocalDate.now()
@@ -51,7 +56,7 @@ class ChartsRepository(private val transactionDao: TransactionDao) {
             "Mensuel"       -> (0..5).map { today.minusMonths(it.toLong()) }
             "Annuel"        -> (0..5).map { today.minusYears(it.toLong()) }
             else            -> emptyList()
-        }.reversed() // Du plus ancien au plus récent.
+        }.reversed()
     
         val transactions = getTransactionsFromDb(type)
         val groupedData = startDates.mapIndexed { index, date ->
@@ -78,7 +83,6 @@ class ChartsRepository(private val transactionDao: TransactionDao) {
             BarEntry(index.toFloat(), total.toFloat())
         }
     
-        // Choix du format en fonction de la période sélectionnée
         val outputFormatter = when (period) {
             "Mensuel" -> DateTimeFormatter.ofPattern("MM-yyyy")
             "Annuel"  -> DateTimeFormatter.ofPattern("yyyy")
@@ -89,9 +93,10 @@ class ChartsRepository(private val transactionDao: TransactionDao) {
         emit(BarChartData(entries = groupedData, labels = labels))
     }
     
-
     /**
-     * Retourne les détails des transactions pour une barre sélectionnée.
+     * Récupère les détails des transactions associées à une barre spécifique du graphique.
+     * Input: période, type de transaction, index de la barre sélectionnée
+     * Output: Flow contenant TransactionDetailsData (détails des transactions pour la période sélectionnée)
      */
     fun getTransactionDetailsByBar(
         period: String,

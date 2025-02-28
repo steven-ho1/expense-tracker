@@ -28,7 +28,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import formatUtcMillisToString
 
-// Fonction utilitaire pour formater la date d'une transaction.
+// Fonction pour formater la date d'une transaction.
 fun formatTransactionDate(dateString: String): String {
    val inputFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.ENGLISH)
    val outputFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
@@ -38,9 +38,8 @@ fun formatTransactionDate(dateString: String): String {
 
 @Composable
 fun ChartsScreen(
-   chartsViewModel: ChartsViewModel = viewModel(),
-   modifier: Modifier = Modifier
-) {
+   chartsViewModel: ChartsViewModel = viewModel()) {
+    // Récupération des données du ViewModel
    val chartData by chartsViewModel.chartData.collectAsState(initial = emptyList<BarEntry>())
    val chartLabels by chartsViewModel.chartLabels.collectAsState(initial = emptyList<String>())
    val selectedType by chartsViewModel.selectedType.collectAsState(initial = TransactionType.EXPENSES)
@@ -52,7 +51,9 @@ fun ChartsScreen(
            .fillMaxSize()
            .padding(16.dp)
    ) {
-       // Onglets pour sélectionner Dépenses / Revenus
+        /**
+        * Onglets pour sélectionner le type de transaction (Dépenses ou Revenus)
+        */
        val tabs = listOf("Dépenses", "Revenus")
        TabRow(selectedTabIndex = if (selectedType == TransactionType.EXPENSES) 0 else 1) {
            tabs.forEachIndexed { index, title ->
@@ -69,7 +70,9 @@ fun ChartsScreen(
            }
        }
 
-       // Onglets pour sélectionner la période
+        /**
+        * Onglets pour sélectionner la période d'affichage des transactions
+        */
        val periods = listOf("Journalier", "Hebdomadaire", "Mensuel", "Annuel")
        TabRow(selectedTabIndex = periods.indexOf(selectedPeriod)) {
            periods.forEach { period ->
@@ -84,15 +87,19 @@ fun ChartsScreen(
 
        Spacer(modifier = Modifier.height(16.dp))
 
-       // Affichage du graphique via AndroidView
-       AndroidView(
+       /**
+        * Affichage du graphique en barres à l'aide de AndroidView qui intègre MPAndroidChart.
+        * Input: chartData (valeurs des transactions), chartLabels (dates)
+        * Output: Affichage du graphique avec les transactions par période.
+        */
+        AndroidView(
            factory = { context ->
                BarChart(context).apply {
                    val dataSet = BarDataSet(chartData, "Transactions").apply {
                        colors = listOf(
                            Color.BLUE, Color.RED, Color.GREEN, Color.YELLOW, Color.CYAN, Color.MAGENTA
                        )
-                       setDrawValues(false) // Désactive l'affichage des valeurs au-dessus des barres
+                       setDrawValues(false)
                    }
                    this.data = BarData(dataSet)
                    this.description.isEnabled = false
@@ -105,7 +112,8 @@ fun ChartsScreen(
                        position = XAxis.XAxisPosition.BOTTOM
                        setDrawGridLines(false)
                    }
-
+                   
+                   // Gestion de la sélection d'une barre du graphique
                    this.setOnChartValueSelectedListener(object : OnChartValueSelectedListener {
                        override fun onValueSelected(e: Entry?, h: Highlight?) {
                            e?.let {
@@ -139,7 +147,11 @@ fun ChartsScreen(
                .height(300.dp)
        )
 
-       // Affichage des détails des transactions (période et liste)
+       /**
+        * Affichage des détails des transactions associées à une barre sélectionnée.
+        * Input: `selectedDetailsData` (transactions pour la période sélectionnée)
+        * Output: Affichage des transactions sous forme de carte.
+        */
         selectedDetailsData?.let { detailsData ->
             if (detailsData.transactions.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(16.dp))
