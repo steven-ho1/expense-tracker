@@ -36,15 +36,16 @@ class CategoryViewModel : ViewModel() {
         val dbTransactionType = TransactionType.valueOf(transactionType.name)
         val colorHex = colorToHex(color)
 
+        val cleanedCategoryName = categoryName.trim().replace(Regex("\\s+"), " ")
         val categoryEntity = CategoryEntity(
-            name = categoryName,
+            name = cleanedCategoryName,
             type = dbTransactionType,
             color = colorHex
         )
 
         viewModelScope.launch {
             val categories = categoryRepository.getCategories()
-            if (categories.any { it.name.equals(categoryName, ignoreCase = true) }) {
+            if (categories.any { it.name.equals(cleanedCategoryName, ignoreCase = true) }) {
                 onResult("Le nom de catégorie est déjà pris")
             } else {
                 categoryRepository.insertCategory(categoryEntity)
