@@ -96,10 +96,10 @@ fun HomeScreen(
                 selectedTabIndex = selectedPeriodTabIndex
             ) {
                 listOf(
-                    "Jour",
-                    "Semaine",
-                    "Mois",
-                    "Année",
+                    "Journalier",
+                    "Hebdomadaire",
+                    "Mensuel",
+                    "Annuel",
                 ).forEachIndexed { index, period ->
                     Tab(
                         selected = selectedPeriodTabIndex == index,
