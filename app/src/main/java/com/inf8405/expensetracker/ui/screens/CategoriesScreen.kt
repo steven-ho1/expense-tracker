@@ -1,16 +1,30 @@
 package com.inf8405.expensetracker.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -19,10 +33,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.inf8405.expensetracker.models.MainViewModelsWrapper
-import com.inf8405.expensetracker.viewmodels.CategoryViewModel
 import com.inf8405.expensetracker.database.entities.CategoryEntity
+import com.inf8405.expensetracker.models.MainViewModelsWrapper
 import com.inf8405.expensetracker.ui.navigation.ExpenseTrackerScreen
+import com.inf8405.expensetracker.utils.toColor
+import com.inf8405.expensetracker.viewmodels.CategoryViewModel
 
 /**
  * Écran principal pour afficher et gérer les catégories
@@ -35,7 +50,7 @@ fun CategoriesScreen(
     navController: NavController,
 ) {
     // État pour suivre l'onglet sélectionné (0 pour dépenses, 1 pour revenus)
-    var selectedTab by remember { mutableStateOf(0) }
+    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
     // Récupération du ViewModel des catégories
     val categoryViewModel: CategoryViewModel = mainViewModelsWrapper.categoryViewModel
@@ -74,9 +89,6 @@ fun CategoriesScreen(
                 CategoriesGrid(
                     // Affiche les catégories de dépenses ou de revenus selon l'onglet sélectionné
                     categories = if (selectedTab == 0) expenseCategories else incomeCategories,
-                    onCategoryClick = { category ->
-                        // Gestion du clic sur une catégorie (à implémenter)
-                    }
                 )
             }
         }
@@ -101,12 +113,10 @@ fun CategoriesScreen(
 /**
  * Composant qui affiche une grille de catégories
  * @param categories Liste des catégories à afficher
- * @param onCategoryClick Fonction de rappel lors du clic sur une catégorie
  */
 @Composable
 fun CategoriesGrid(
     categories: List<CategoryEntity>,
-    onCategoryClick: (CategoryEntity) -> Unit
 ) {
     // Grille verticale avec 3 colonnes
     LazyVerticalGrid(
@@ -118,7 +128,6 @@ fun CategoriesGrid(
         items(categories) { category ->
             CategoryItem(
                 category = category,
-                onClick = { onCategoryClick(category) }
             )
         }
     }
@@ -127,26 +136,22 @@ fun CategoriesGrid(
 /**
  * Élément individuel représentant une catégorie
  * @param category Entité de catégorie à afficher
- * @param onClick Fonction de rappel lors du clic sur cet élément
  */
 @Composable
 fun CategoryItem(
     category: CategoryEntity,
-    onClick: () -> Unit
 ) {
     // Disposition en colonne pour aligner l'icône et le texte
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .padding(8.dp)
-            .clickable(onClick = onClick)
+        modifier = Modifier.padding(8.dp)
     ) {
         // Cercle coloré représentant la catégorie
         Box(
             modifier = Modifier
                 .size(80.dp)
                 .clip(CircleShape)
-                .background(Color(android.graphics.Color.parseColor(category.color)))
+                .background(category.color.toColor())
         )
 
         // Nom de la catégorie

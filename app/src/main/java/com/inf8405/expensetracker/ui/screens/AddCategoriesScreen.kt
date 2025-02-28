@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -23,7 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -31,13 +32,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.inf8405.expensetracker.R
 import com.inf8405.expensetracker.models.MainViewModelsWrapper
 import com.inf8405.expensetracker.models.TransactionType
 import com.inf8405.expensetracker.viewmodels.CategoryViewModel
-import androidx.compose.runtime.saveable.Saver
 
 
 @Composable
@@ -46,13 +47,17 @@ fun AddCategoryScreen(
     navController: NavController,
 ) {
     val categoryViewModel: CategoryViewModel = mainViewModelsWrapper.categoryViewModel
-    val ColorNullableSaver: Saver<Color?, Long> = Saver(
+    val colorNullableSaver: Saver<Color?, Long> = Saver(
         save = { color -> color?.value?.toLong() ?: -1L },
         restore = { value -> if (value == -1L) null else Color(value.toULong()) }
     )
     var categoryName by rememberSaveable { mutableStateOf("") }
     var selectedTransactionType by rememberSaveable { mutableStateOf(TransactionType.EXPENSES) }
-    var selectedColor by rememberSaveable(stateSaver = ColorNullableSaver) { mutableStateOf<Color?>(null) }
+    var selectedColor by rememberSaveable(stateSaver = colorNullableSaver) {
+        mutableStateOf(
+            null
+        )
+    }
     var errorMessage by rememberSaveable { mutableStateOf("") }
 
 
@@ -75,12 +80,14 @@ fun AddCategoryScreen(
         OutlinedTextField(
             value = categoryName,
             onValueChange = { categoryName = it },
-            label = { Text("Category Name") },
-            modifier = Modifier.fillMaxWidth()
+            label = { Text("Nom de catégorie") },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+            modifier = Modifier.fillMaxWidth(),
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(text = "Category Type")
+        Text(text = "Type de catégorie")
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(vertical = 8.dp)
@@ -90,7 +97,7 @@ fun AddCategoryScreen(
                 onClick = { selectedTransactionType = TransactionType.EXPENSES }
             )
             Text(
-                text = "Expense",
+                text = TransactionType.EXPENSES.label,
                 modifier = Modifier
                     .clickable { selectedTransactionType = TransactionType.EXPENSES }
                     .padding(end = 16.dp)
@@ -100,14 +107,14 @@ fun AddCategoryScreen(
                 onClick = { selectedTransactionType = TransactionType.INCOME }
             )
             Text(
-                text = "Income",
+                text = TransactionType.INCOME.label,
                 modifier = Modifier
                     .clickable { selectedTransactionType = TransactionType.INCOME }
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(text = "Select a Color")
+        Text(text = "Choisir une couleur")
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
@@ -139,9 +146,8 @@ fun AddCategoryScreen(
 
         Button(
             onClick = {
-
                 if (categoryName.isBlank() || selectedColor == null) {
-                    errorMessage = "Please enter a category name and select a color."
+                    errorMessage = "Veuillez entrer un nom et choisir une couleur"
                     return@Button
                 }
 
@@ -160,7 +166,7 @@ fun AddCategoryScreen(
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Add Category")
+            Text("Ajouter la catégorie")
         }
     }
 }

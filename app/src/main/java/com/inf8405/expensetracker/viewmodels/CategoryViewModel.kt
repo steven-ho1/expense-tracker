@@ -45,7 +45,7 @@ class CategoryViewModel : ViewModel() {
         viewModelScope.launch {
             val categories = categoryRepository.getCategories()
             if (categories.any { it.name.equals(categoryName, ignoreCase = true) }) {
-                onResult("This category name already exists")
+                onResult("Le nom de catégorie est déjà pris")
             } else {
                 categoryRepository.insertCategory(categoryEntity)
                 onResult(null)

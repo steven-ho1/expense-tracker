@@ -137,7 +137,7 @@ fun HomeScreen(
                         .padding(8.dp),
                     shape = CircleShape
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "Add")
+                    Icon(Icons.Default.Add, contentDescription = "Ajouter une transaction")
                 }
             }
         }
