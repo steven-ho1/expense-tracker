@@ -76,10 +76,17 @@ fun AddCategoryScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-
+        val maxChar = 50
         OutlinedTextField(
             value = categoryName,
-            onValueChange = { categoryName = it },
+            onValueChange = { input ->
+                val filteredInput = input.filter { !it.isWhitespace() }
+                categoryName = if (filteredInput.length <= maxChar) {
+                    filteredInput
+                } else {
+                    filteredInput.take(maxChar)
+                }
+            },
             label = { Text("Nom de catégorie") },
             singleLine = true,
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
