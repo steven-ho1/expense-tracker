@@ -38,8 +38,4 @@ fun NavGraphBuilder.expenseTrackerNavGraph(
         val chartsViewModel: ChartsViewModel = viewModel()
         ChartsScreen(chartsViewModel)
     }
-    //    composable(route = ExpenseTrackerScreen.Charts.name) {
-//        ChartsScreen()
-//    }
-    // TODO: Ajouter les autres routes/pages
 }
