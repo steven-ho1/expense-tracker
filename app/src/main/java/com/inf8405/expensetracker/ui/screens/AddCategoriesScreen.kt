@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -33,6 +34,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.inf8405.expensetracker.R
@@ -80,11 +82,8 @@ fun AddCategoryScreen(
         OutlinedTextField(
             value = categoryName,
             onValueChange = { input ->
-                val filteredInput = input.filter { !it.isWhitespace() }
-                categoryName = if (filteredInput.length <= maxChar) {
-                    filteredInput
-                } else {
-                    filteredInput.take(maxChar)
+                if (input.length <= maxChar) {
+                    categoryName = input
                 }
             },
             label = { Text("Nom de catégorie") },
@@ -92,6 +91,16 @@ fun AddCategoryScreen(
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
             modifier = Modifier.fillMaxWidth(),
         )
+        Text(
+            text = "${categoryName.length}/$maxChar",
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier
+                .padding(top = 4.dp)
+                .padding(horizontal = 10.dp)
+                .fillMaxWidth(),
+            textAlign = TextAlign.End
+        )
+
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(text = "Type de catégorie")
