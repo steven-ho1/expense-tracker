@@ -57,7 +57,7 @@ fun NewTransactionScreen(
 
     var amountInput by rememberSaveable { mutableStateOf("") }
     var selectedTransactionTabIndex by rememberSaveable { mutableIntStateOf(0) }
-    val isAmountValid = amountInput.toDoubleOrNull() != null
+    val isAmountValid = amountInput.toDoubleOrNull() != null && amountInput.toDoubleOrNull() != 0.0
 
     val expenseCategories by categoryViewModel.expenseCategories.collectAsState()
     val incomeCategories by categoryViewModel.incomeCategories.collectAsState()
