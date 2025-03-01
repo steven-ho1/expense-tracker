@@ -12,14 +12,14 @@ import java.util.Locale
 import formatUtcMillisToString
 import com.inf8405.expensetracker.models.DefaultCategories
 
-
+// Output: BarChartData contenant les BarEntry, X-axis labels et stackLabels (noms des catégories)
 data class BarChartData(
     val entries: List<BarEntry>,
     val labels: List<String>,
-    val stackLabels: List<String> // Ajouté pour la légende du stack
+    val stackLabels: List<String>
 )
 
-
+// Output: TransactionDetailsData avec une plage de dates et une liste de transactions
 data class TransactionDetailsData(
     val periodRange: String,
     val transactions: List<TransactionEntity>
@@ -27,19 +27,32 @@ data class TransactionDetailsData(
 
 class ChartsRepository(
     private val transactionDao: TransactionDao,
-    private val categoryRepository: CategoryRepository // Injection du CategoryRepository
+    private val categoryRepository: CategoryRepository  // Input: CategoryRepository
 ) {
+    /**
+     * parseTransactionDate
+     * Input: dateString (String, format "dd-MM-yyyy")
+     * Output: LocalDate
+     */
     private fun parseTransactionDate(dateString: String): LocalDate {
         val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.ENGLISH)
         return LocalDate.parse(dateString, formatter)
     }
 
-    // Récupère les transactions en fonction du type
+    /**
+     * getTransactionsFromDb
+     * Input: type (TransactionType)
+     * Output: List<TransactionEntity>
+     */
     private suspend fun getTransactionsFromDb(type: TransactionType): List<TransactionEntity> {
         return transactionDao.getTransactionsByType(type)
     }
 
-    // Création d'un stacked bar chart
+    /**
+     * getStackedTransactionsByPeriod
+     * Input: period (String), type (TransactionType)
+     * Output: Flow<BarChartData> (BarEntry list, X-axis labels, stackLabels)
+     */
     fun getStackedTransactionsByPeriod(period: String, type: TransactionType): Flow<BarChartData> = flow {
         val today = LocalDate.now()
         val startDates = when (period) {
@@ -51,21 +64,17 @@ class ChartsRepository(
         }.reversed()
     
         val transactions = getTransactionsFromDb(type)
-        // Récupération des catégories combinées
+        // Combine catégories par défaut et DB (Input: type) | Output: combined list of category names
         val dbCategories = categoryRepository.getCategories()
         val defaultCategories = when (type) {
             TransactionType.EXPENSES -> DefaultCategories.expenseCategories
             TransactionType.INCOME -> DefaultCategories.incomeCategories
         }
-        // Fusionner en éliminant les doublons par nom (pour garantir l'ordre)
         val combinedCategories = (defaultCategories + dbCategories.filter { it.type == type })
             .distinctBy { it.name }
-        val categoryNames = if (combinedCategories.isEmpty()) {
-            listOf("Default")
-        } else {
-            combinedCategories.map { it.name }
-        }
+        val categoryNames = if (combinedCategories.isEmpty()) listOf("Default") else combinedCategories.map { it.name }
     
+        // Pour chaque date, filtre les transactions et agrège les montants par catégorie
         val entries = startDates.mapIndexed { index, date ->
             val filteredTx = transactions.filter {
                 when (period) {
@@ -88,7 +97,7 @@ class ChartsRepository(
             val stackValues = FloatArray(categoryNames.size) { 0f }
             filteredTx.forEach { transaction ->
                 val catIndex = categoryNames.indexOfFirst { 
-                    it.trim().equals(transaction.category.trim(), ignoreCase = true) 
+                    it.trim().equals(transaction.category.trim(), ignoreCase = true)
                 }
                 if (catIndex != -1) {
                     stackValues[catIndex] += transaction.amount.toFloat()
@@ -107,7 +116,11 @@ class ChartsRepository(
         emit(BarChartData(entries = entries, labels = labels, stackLabels = categoryNames))
     }
     
-
+    /**
+     * getTransactionDetailsByBar
+     * Input: period (String), type (TransactionType), barIndex (Int)
+     * Output: Flow<TransactionDetailsData> (plage de dates et liste des transactions)
+     */
     fun getTransactionDetailsByBar(
         period: String,
         type: TransactionType,
@@ -167,7 +180,6 @@ class ChartsRepository(
             }
             else -> ""
         }
-
         emit(TransactionDetailsData(periodRange, details))
     }
 }
