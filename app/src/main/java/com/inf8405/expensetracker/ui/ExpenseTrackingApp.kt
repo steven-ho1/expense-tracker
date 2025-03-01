@@ -1,5 +1,7 @@
 package com.inf8405.expensetracker.ui
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
@@ -23,6 +25,7 @@ import com.inf8405.expensetracker.ui.navigation.expenseTrackerNavGraph
 import com.inf8405.expensetracker.viewmodels.CategoryViewModel
 import com.inf8405.expensetracker.viewmodels.TransactionViewModel
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ExpenseTrackingApp(
 ) {

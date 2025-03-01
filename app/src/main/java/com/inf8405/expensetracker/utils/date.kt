@@ -47,7 +47,7 @@ fun filterTransactionsByPeriod(
             transactions.filter {
                 val transactionDate = convertUnixTimestampToLocalDateTime(it.date)
                 val transactionLocalDate = transactionDate.toLocalDate()
-                transactionLocalDate.isAfter(startOfWeek) && transactionLocalDate.isBefore(
+                transactionLocalDate.isAfter(startOfWeek.minusDays(1)) && transactionLocalDate.isBefore(
                     endOfWeek.plusDays(
                         1
                     )

@@ -1,5 +1,7 @@
 package com.inf8405.expensetracker.ui.screens
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -43,6 +45,7 @@ import com.inf8405.expensetracker.viewmodels.CategoryViewModel
 import com.inf8405.expensetracker.viewmodels.TransactionViewModel
 import formatUtcMillisToString
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NewTransactionScreen(
     mainViewModelsWrapper: MainViewModelsWrapper,
@@ -106,8 +109,6 @@ fun NewTransactionScreen(
             categories = categories,
             selectedCategory = selectedCategory
         ) { category ->
-            println(category)
-            println(selectedCategory)
             selectedCategory = category
         }
 
@@ -142,7 +143,7 @@ fun NewTransactionScreen(
             }
         }
 
-        Spacer(modifier = modifier.height(40.dp))
+        Spacer(modifier = modifier.height(30.dp))
 
         Button(
             onClick = {

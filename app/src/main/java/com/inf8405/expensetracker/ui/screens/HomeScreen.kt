@@ -96,10 +96,10 @@ fun HomeScreen(
                 selectedTabIndex = selectedPeriodTabIndex
             ) {
                 listOf(
-                    "Jour",
-                    "Semaine",
-                    "Mois",
-                    "Année",
+                    "Journalier",
+                    "Hebdomadaire",
+                    "Mensuel",
+                    "Annuel",
                 ).forEachIndexed { index, period ->
                     Tab(
                         selected = selectedPeriodTabIndex == index,
@@ -137,7 +137,7 @@ fun HomeScreen(
                         .padding(8.dp),
                     shape = CircleShape
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "Add")
+                    Icon(Icons.Default.Add, contentDescription = "Ajouter une transaction")
                 }
             }
         }

@@ -1,18 +1,21 @@
 package com.inf8405.expensetracker.ui.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.inf8405.expensetracker.models.MainViewModelsWrapper
+import com.inf8405.expensetracker.ui.screens.AddCategoryScreen
 import com.inf8405.expensetracker.ui.screens.CategoriesScreen
+import com.inf8405.expensetracker.ui.screens.ChartsScreen
 import com.inf8405.expensetracker.ui.screens.HomeScreen
 import com.inf8405.expensetracker.ui.screens.NewTransactionScreen
-import com.inf8405.expensetracker.ui.screens.ChartsScreen
 import com.inf8405.expensetracker.viewmodels.ChartsViewModel
-import com.inf8405.expensetracker.ui.screens.AddCategoryScreen
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 fun NavGraphBuilder.expenseTrackerNavGraph(
     navController: NavController,
     mainViewModelsWrapper: MainViewModelsWrapper
@@ -20,7 +23,7 @@ fun NavGraphBuilder.expenseTrackerNavGraph(
     composable(route = ExpenseTrackerScreen.Home.name) {
         HomeScreen(mainViewModelsWrapper, navController)
     }
-    
+
     composable(route = ExpenseTrackerScreen.NewTransaction.name) {
         NewTransactionScreen(mainViewModelsWrapper, navController)
     }
