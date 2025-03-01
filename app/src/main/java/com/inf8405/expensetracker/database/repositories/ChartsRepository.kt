@@ -10,77 +10,92 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import formatUtcMillisToString
+import com.inf8405.expensetracker.models.DefaultCategories
 
-// Data class pour stocker les transactions d'une période spécifique
+
+data class BarChartData(
+    val entries: List<BarEntry>,
+    val labels: List<String>,
+    val stackLabels: List<String> // Ajouté pour la légende du stack
+)
+
+
 data class TransactionDetailsData(
     val periodRange: String,
     val transactions: List<TransactionEntity>
 )
 
-// Data class pour contenir les données d'un graphique en barres
-data class BarChartData(
-    val entries: List<BarEntry>,
-    val labels: List<String>
-)
-
-private val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.ENGLISH)
-
-class ChartsRepository(private val transactionDao: TransactionDao) {
-    /**
-     * Convertit une date sous forme de chaîne en LocalDate.
-     * Input: String (format "dd-MM-yyyy")
-     * Output: LocalDate
-     */
+class ChartsRepository(
+    private val transactionDao: TransactionDao,
+    private val categoryRepository: CategoryRepository // Injection du CategoryRepository
+) {
     private fun parseTransactionDate(dateString: String): LocalDate {
+        val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.ENGLISH)
         return LocalDate.parse(dateString, formatter)
     }
-    /**
-     * Récupère les transactions d'un type spécifique depuis la base de données.
-     * Input: TransactionType
-     * Output: Liste de TransactionEntity
-     */
+
+    // Récupère les transactions en fonction du type
     private suspend fun getTransactionsFromDb(type: TransactionType): List<TransactionEntity> {
         return transactionDao.getTransactionsByType(type)
     }
 
-    /**
-     * Génère les données pour un graphique en barres en fonction d'une période et d'un type de transaction.
-     * Input: période (Journalier, Hebdomadaire, Mensuel, Annuel), type de transaction
-     * Output: Flow contenant BarChartData (données et labels pour le graphique)
-     */
-    fun getTransactionsByPeriod(period: String, type: TransactionType): Flow<BarChartData> = flow {
+    // Création d'un stacked bar chart
+    fun getStackedTransactionsByPeriod(period: String, type: TransactionType): Flow<BarChartData> = flow {
         val today = LocalDate.now()
         val startDates = when (period) {
-            "Journalier"    -> (0..5).map { today.minusDays(it.toLong()) }
-            "Hebdomadaire"  -> (0..5).map { today.minusWeeks(it.toLong()) }
-            "Mensuel"       -> (0..5).map { today.minusMonths(it.toLong()) }
-            "Annuel"        -> (0..5).map { today.minusYears(it.toLong()) }
-            else            -> emptyList()
+            "Journalier"   -> (0..5).map { today.minusDays(it.toLong()) }
+            "Hebdomadaire" -> (0..5).map { today.minusWeeks(it.toLong()) }
+            "Mensuel"      -> (0..5).map { today.minusMonths(it.toLong()) }
+            "Annuel"       -> (0..5).map { today.minusYears(it.toLong()) }
+            else           -> emptyList()
         }.reversed()
     
         val transactions = getTransactionsFromDb(type)
-        val groupedData = startDates.mapIndexed { index, date ->
-            val total = transactions
-                .filter {
-                    when (period) {
-                        "Journalier" -> parseTransactionDate(formatUtcMillisToString(it.date)).isEqual(date)
-                        "Hebdomadaire" -> {
-                            val txDate = parseTransactionDate(formatUtcMillisToString(it.date))
-                            txDate >= date.minusDays(6) && txDate <= date
-                        }
-                        "Mensuel" -> {
-                            val txDate = parseTransactionDate(formatUtcMillisToString(it.date))
-                            txDate.month == date.month && txDate.year == date.year
-                        }
-                        "Annuel" -> {
-                            val txDate = parseTransactionDate(formatUtcMillisToString(it.date))
-                            txDate.year == date.year
-                        }
-                        else -> false
+        // Récupération des catégories combinées
+        val dbCategories = categoryRepository.getCategories()
+        val defaultCategories = when (type) {
+            TransactionType.EXPENSES -> DefaultCategories.expenseCategories
+            TransactionType.INCOME -> DefaultCategories.incomeCategories
+        }
+        // Fusionner en éliminant les doublons par nom (pour garantir l'ordre)
+        val combinedCategories = (defaultCategories + dbCategories.filter { it.type == type })
+            .distinctBy { it.name }
+        val categoryNames = if (combinedCategories.isEmpty()) {
+            listOf("Default")
+        } else {
+            combinedCategories.map { it.name }
+        }
+    
+        val entries = startDates.mapIndexed { index, date ->
+            val filteredTx = transactions.filter {
+                when (period) {
+                    "Journalier" -> parseTransactionDate(formatUtcMillisToString(it.date)).isEqual(date)
+                    "Hebdomadaire" -> {
+                        val txDate = parseTransactionDate(formatUtcMillisToString(it.date))
+                        txDate >= date.minusDays(6) && txDate <= date
                     }
+                    "Mensuel" -> {
+                        val txDate = parseTransactionDate(formatUtcMillisToString(it.date))
+                        txDate.month == date.month && txDate.year == date.year
+                    }
+                    "Annuel" -> {
+                        val txDate = parseTransactionDate(formatUtcMillisToString(it.date))
+                        txDate.year == date.year
+                    }
+                    else -> false
                 }
-                .sumOf { it.amount }
-            BarEntry(index.toFloat(), total.toFloat())
+            }
+            val stackValues = FloatArray(categoryNames.size) { 0f }
+            filteredTx.forEach { transaction ->
+                val catIndex = categoryNames.indexOfFirst { 
+                    it.trim().equals(transaction.category.trim(), ignoreCase = true) 
+                }
+                if (catIndex != -1) {
+                    stackValues[catIndex] += transaction.amount.toFloat()
+                }
+            }
+            println("Date: $date, transactions filtrées: ${filteredTx.size}, stackValues: ${stackValues.joinToString()}")
+            BarEntry(index.toFloat(), stackValues)
         }
     
         val outputFormatter = when (period) {
@@ -89,15 +104,10 @@ class ChartsRepository(private val transactionDao: TransactionDao) {
             else      -> DateTimeFormatter.ofPattern("dd-MM-yyyy")
         }
         val labels = startDates.map { it.format(outputFormatter) }
-    
-        emit(BarChartData(entries = groupedData, labels = labels))
+        emit(BarChartData(entries = entries, labels = labels, stackLabels = categoryNames))
     }
     
-    /**
-     * Récupère les détails des transactions associées à une barre spécifique du graphique.
-     * Input: période, type de transaction, index de la barre sélectionnée
-     * Output: Flow contenant TransactionDetailsData (détails des transactions pour la période sélectionnée)
-     */
+
     fun getTransactionDetailsByBar(
         period: String,
         type: TransactionType,
@@ -105,11 +115,11 @@ class ChartsRepository(private val transactionDao: TransactionDao) {
     ): Flow<TransactionDetailsData> = flow {
         val today = LocalDate.now()
         val startDates = when (period) {
-            "Journalier"    -> (0..5).map { today.minusDays(it.toLong()) }
-            "Hebdomadaire"  -> (0..5).map { today.minusWeeks(it.toLong()) }
-            "Mensuel"       -> (0..5).map { today.minusMonths(it.toLong()) }
-            "Annuel"        -> (0..5).map { today.minusYears(it.toLong()) }
-            else            -> emptyList()
+            "Journalier"   -> (0..5).map { today.minusDays(it.toLong()) }
+            "Hebdomadaire" -> (0..5).map { today.minusWeeks(it.toLong()) }
+            "Mensuel"      -> (0..5).map { today.minusMonths(it.toLong()) }
+            "Annuel"       -> (0..5).map { today.minusYears(it.toLong()) }
+            else           -> emptyList()
         }.reversed()
 
         if (barIndex < 0 || barIndex >= startDates.size) {
@@ -140,7 +150,7 @@ class ChartsRepository(private val transactionDao: TransactionDao) {
 
         val outputFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
         val periodRange = when (period) {
-            "Journalier" -> "${selectedDate.format(outputFormatter)}"
+            "Journalier" -> selectedDate.format(outputFormatter)
             "Hebdomadaire" -> {
                 val startPeriod = selectedDate.minusDays(6)
                 "${startPeriod.format(outputFormatter)} à ${selectedDate.format(outputFormatter)}"
@@ -157,6 +167,7 @@ class ChartsRepository(private val transactionDao: TransactionDao) {
             }
             else -> ""
         }
+
         emit(TransactionDetailsData(periodRange, details))
     }
 }

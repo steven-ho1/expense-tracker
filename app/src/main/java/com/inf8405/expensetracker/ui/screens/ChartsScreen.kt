@@ -42,9 +42,14 @@ fun ChartsScreen(
     // Récupération des données du ViewModel
    val chartData by chartsViewModel.chartData.collectAsState(initial = emptyList<BarEntry>())
    val chartLabels by chartsViewModel.chartLabels.collectAsState(initial = emptyList<String>())
+   val categoryColors by chartsViewModel.categoryColors.collectAsState()
+
    val selectedType by chartsViewModel.selectedType.collectAsState(initial = TransactionType.EXPENSES)
    val selectedPeriod by chartsViewModel.selectedPeriod.collectAsState(initial = "Hebdomadaire")
    val selectedDetailsData by chartsViewModel.selectedDetails.collectAsState(initial = null as TransactionDetailsData?)
+   val stackLabels by chartsViewModel.stackLabels.collectAsState(initial = emptyList<String>())
+
+
 
    Column(
        modifier = Modifier
@@ -93,59 +98,55 @@ fun ChartsScreen(
         * Output: Affichage du graphique avec les transactions par période.
         */
         AndroidView(
-           factory = { context ->
-               BarChart(context).apply {
-                   val dataSet = BarDataSet(chartData, "Transactions").apply {
-                       colors = listOf(
-                           Color.BLUE, Color.RED, Color.GREEN, Color.YELLOW, Color.CYAN, Color.MAGENTA
-                       )
-                       setDrawValues(false)
-                   }
-                   this.data = BarData(dataSet)
-                   this.description.isEnabled = false
+    factory = { context ->
+        BarChart(context).apply {
+            val dataSet = BarDataSet(chartData, "Transactions").apply {
+                colors = categoryColors
+                setDrawValues(false)
+                setStackLabels(stackLabels.toTypedArray())
+            }
+            this.data = BarData(dataSet)
+            this.description.isEnabled = false
+            this.xAxis.apply {
+                valueFormatter = IndexAxisValueFormatter(chartLabels)
+                granularity = 1f
+                isGranularityEnabled = true
+                position = XAxis.XAxisPosition.BOTTOM
+                setDrawGridLines(false)
+            }
+            this.setOnChartValueSelectedListener(object : OnChartValueSelectedListener {
+                override fun onValueSelected(e: Entry?, h: Highlight?) {
+                    e?.let {
+                        chartsViewModel.selectBarEntry(it.x.toInt())
+                    }
+                }
+                override fun onNothingSelected() {
+                    chartsViewModel.selectBarEntry(-1)
+                }
+            })
+            this.invalidate()
+        }
+    },
+    update = { chart ->
+        val dataSet = BarDataSet(chartData, "Transactions").apply {
+            colors = categoryColors
+            setDrawValues(false)
+            setStackLabels(stackLabels.toTypedArray())
+        }
+        chart.data = BarData(dataSet)
+        chart.xAxis.apply {
+            valueFormatter = IndexAxisValueFormatter(chartLabels)
+            granularity = 1f
+            isGranularityEnabled = true
+        }
+        chart.invalidate()
+    },
+    modifier = Modifier
+        .fillMaxWidth()
+        .height(300.dp)
+)
 
-                   // Configuration de l'axe X pour afficher les dates sous les barres
-                   this.xAxis.apply {
-                       valueFormatter = IndexAxisValueFormatter(chartLabels)
-                       granularity = 1f
-                       isGranularityEnabled = true
-                       position = XAxis.XAxisPosition.BOTTOM
-                       setDrawGridLines(false)
-                   }
-                   
-                   // Gestion de la sélection d'une barre du graphique
-                   this.setOnChartValueSelectedListener(object : OnChartValueSelectedListener {
-                       override fun onValueSelected(e: Entry?, h: Highlight?) {
-                           e?.let {
-                               chartsViewModel.selectBarEntry(it.x.toInt())
-                           }
-                       }
-                       override fun onNothingSelected() {
-                           chartsViewModel.selectBarEntry(-1)
-                       }
-                   })
-                   this.invalidate()
-               }
-           },
-           update = { chart ->
-               val dataSet = BarDataSet(chartData, "Transactions").apply {
-                   colors = listOf(
-                       Color.BLUE, Color.RED, Color.GREEN, Color.YELLOW, Color.CYAN, Color.MAGENTA
-                   )
-                   setDrawValues(false)
-               }
-               chart.data = BarData(dataSet)
-               chart.xAxis.apply {
-                   valueFormatter = IndexAxisValueFormatter(chartLabels)
-                   granularity = 1f
-                   isGranularityEnabled = true
-               }
-               chart.invalidate()
-           },
-           modifier = Modifier
-               .fillMaxWidth()
-               .height(300.dp)
-       )
+         
 
        /**
         * Affichage des détails des transactions associées à une barre sélectionnée.
