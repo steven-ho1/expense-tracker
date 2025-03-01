@@ -1,99 +1,114 @@
 package com.inf8405.expensetracker.viewmodels
 
-import android.os.Build
-import androidx.annotation.RequiresApi
+import android.graphics.Color as AndroidColor
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.mikephil.charting.data.BarEntry
 import com.inf8405.expensetracker.database.AppDatabase
 import com.inf8405.expensetracker.database.repositories.ChartsRepository
+import com.inf8405.expensetracker.database.repositories.CategoryRepository
 import com.inf8405.expensetracker.database.repositories.TransactionDetailsData
 import com.inf8405.expensetracker.models.TransactionType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.inf8405.expensetracker.models.DefaultCategories
 
-@RequiresApi(Build.VERSION_CODES.O)
+// ViewModel pour gérer l'affichage du graphique et la sélection de périodes/type
 class ChartsViewModel : ViewModel() {
 
-    // Initialisation du repository à partir du DAO obtenu via AppDatabase.instance.
-    private val chartsRepository: ChartsRepository =
-        ChartsRepository(AppDatabase.instance.transactionDao())
+    // Création des repositories
+    private val categoryRepository = CategoryRepository(AppDatabase.instance.categoryDao())
+    private val chartsRepository = ChartsRepository(AppDatabase.instance.transactionDao(), categoryRepository)
 
-    // État courant du type de transaction sélectionné (par défaut : Dépenses)
+    // Stocke le type de transaction (input: aucun, output: TransactionType)
     private val _selectedType = MutableStateFlow(TransactionType.EXPENSES)
     val selectedType: StateFlow<TransactionType> = _selectedType
 
-    // État courant de la période sélectionnée (par défaut : Hebdomadaire)
+    // Stocke la période sélectionnée (input: aucun, output: String)
     private val _selectedPeriod = MutableStateFlow("Hebdomadaire")
     val selectedPeriod: StateFlow<String> = _selectedPeriod
 
-    // Données du graphique (barres et labels)
+    // Données du graphique (input: aucun, output: List<BarEntry>)
     private val _chartData = MutableStateFlow<List<BarEntry>>(emptyList())
     val chartData: StateFlow<List<BarEntry>> = _chartData.asStateFlow()
 
+    // Étiquettes pour l'axe X (input: aucun, output: List<String>)
     private val _chartLabels = MutableStateFlow<List<String>>(emptyList())
     val chartLabels: StateFlow<List<String>> = _chartLabels.asStateFlow()
 
-    // Détails des transactions pour une barre sélectionnée
+    // Détails des transactions pour une barre sélectionnée (input: aucun, output: TransactionDetailsData)
     private val _selectedDetails = MutableStateFlow<TransactionDetailsData?>(null)
     val selectedDetails: StateFlow<TransactionDetailsData?> = _selectedDetails.asStateFlow()
 
+    // Couleurs des catégories pour le graphique (input: aucun, output: List<Int>)
+    private val _categoryColors = MutableStateFlow<List<Int>>(emptyList())
+    val categoryColors: StateFlow<List<Int>> = _categoryColors.asStateFlow()
+
+    // Labels pour les segments du stacked bar chart (input: aucun, output: List<String>)
+    private val _stackLabels = MutableStateFlow<List<String>>(emptyList())
+    val stackLabels: StateFlow<List<String>> = _stackLabels.asStateFlow()
+
+
+
     init {
         loadTransactions()
+        loadCategoryColors() 
     }
 
-    /**
-     * Met à jour le type de transaction sélectionné et recharge les transactions.
-     * Input: TransactionType (Dépenses ou Revenus)
-     * Output: Met à jour _selectedType et recharge _chartData et _chartLabels
-     */
+    // Input: TransactionType | Output: Mise à jour de _selectedType et recharge des données
     fun setTransactionType(type: TransactionType) {
         _selectedType.value = type
         loadTransactions()
     }
 
-    /**
-     * Met à jour la période sélectionnée et recharge les transactions.
-     * Input: String (période : "Journalier", "Hebdomadaire", "Mensuel", "Annuel")
-     * Output: Met à jour _selectedPeriod et recharge _chartData et _chartLabels
-     */
+    // Input: période (String) | Output: Mise à jour de _selectedPeriod et recharge des données
     fun setPeriod(period: String) {
         _selectedPeriod.value = period
         loadTransactions()
     }
 
-    /**
-     * Charge les transactions et met à jour les données du graphique.
-     * Input: Aucun (utilise les valeurs actuelles de _selectedPeriod et _selectedType)
-     * Output: Met à jour _chartData avec les entrées du graphique et _chartLabels
-     */
-    @RequiresApi(Build.VERSION_CODES.O)
+    // Charge les données agrégées du graphique (BarEntry, étiquettes, stackLabels)
+    // Input: _selectedPeriod, _selectedType | Output: Mise à jour de _chartData, _chartLabels, _stackLabels
     private fun loadTransactions() {
         viewModelScope.launch {
-            chartsRepository.getTransactionsByPeriod(_selectedPeriod.value, _selectedType.value)
+            chartsRepository.getStackedTransactionsByPeriod(_selectedPeriod.value, _selectedType.value)
                 .collect { barChartData ->
                     _chartData.value = barChartData.entries
                     _chartLabels.value = barChartData.labels
+                    _stackLabels.value = barChartData.stackLabels
                 }
         }
     }
 
-    /**
-     * Charge les détails des transactions pour une barre sélectionnée dans le graphique.
-     * Input: Int (index de la barre sélectionnée)
-     * Output: Met à jour _selectedDetails avec les transactions associées à cette période
-     */
-    @RequiresApi(Build.VERSION_CODES.O)
+    // Charge les couleurs des catégories en combinant les catégories par défaut et celles de la DB
+    // Input: _selectedType | Output: Mise à jour de _categoryColors (List<Int>)
+    private fun loadCategoryColors() {
+        viewModelScope.launch {
+            val dbCategories = categoryRepository.getCategories()
+            val defaultCategories = when (_selectedType.value) {
+                TransactionType.EXPENSES -> DefaultCategories.expenseCategories
+                TransactionType.INCOME -> DefaultCategories.incomeCategories
+            }
+            val combinedCategories = (defaultCategories + dbCategories.filter { it.type == _selectedType.value })
+                .distinctBy { it.name }
+            _categoryColors.value = if (combinedCategories.isEmpty()) {
+                listOf(AndroidColor.BLACK)
+            } else {
+                combinedCategories.map { AndroidColor.parseColor(it.color) }
+            }
+        }
+    }
+
+    // Charge les détails des transactions pour la barre sélectionnée
+    // Input: index de la barre | Output: Mise à jour de _selectedDetails
     fun selectBarEntry(barIndex: Int) {
         viewModelScope.launch {
-            chartsRepository.getTransactionDetailsByBar(
-                _selectedPeriod.value,
-                _selectedType.value,
-                barIndex
-            )
-                .collect { _selectedDetails.value = it }
+            chartsRepository.getTransactionDetailsByBar(_selectedPeriod.value, _selectedType.value, barIndex)
+                .collect { details ->
+                    _selectedDetails.value = details
+                }
         }
     }
 }
