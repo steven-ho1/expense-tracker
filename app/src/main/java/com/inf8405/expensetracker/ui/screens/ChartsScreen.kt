@@ -171,9 +171,9 @@ fun ChartsScreen(
                                        style = MaterialTheme.typography.bodyMedium
                                    )
                                    Text(
-                                       text = "${transaction.amount}$",
-                                       style = MaterialTheme.typography.bodyMedium
-                                   )
+                                    text = String.format("%.2f$", transaction.amount),
+                                    style = MaterialTheme.typography.bodyMedium
+                                )                                
                                }
                                Spacer(modifier = Modifier.height(4.dp))
                                Text(

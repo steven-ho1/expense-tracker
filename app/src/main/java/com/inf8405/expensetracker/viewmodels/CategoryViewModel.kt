@@ -43,7 +43,7 @@ class CategoryViewModel : ViewModel() {
         )
 
         viewModelScope.launch {
-            val categories = categoryRepository.getCategories()
+            val categories = expenseCategories.value + incomeCategories.value
             if (categories.any { it.name.equals(cleanedCategoryName, ignoreCase = true) }) {
                 onResult("Le nom de catégorie est déjà pris")
             } else {
