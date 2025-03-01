@@ -18,7 +18,6 @@ class CategoryViewModel : ViewModel() {
     private val _expenseCategories = MutableStateFlow<List<CategoryEntity>>(emptyList())
     private val _incomeCategories = MutableStateFlow<List<CategoryEntity>>(emptyList())
 
-    // Explication dans TransactionViewModel
     val expenseCategories: StateFlow<List<CategoryEntity>> = _expenseCategories
     val incomeCategories: StateFlow<List<CategoryEntity>> = _incomeCategories
 

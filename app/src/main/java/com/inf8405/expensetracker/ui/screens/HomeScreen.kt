@@ -67,11 +67,13 @@ fun HomeScreen(
         modifier = modifier
             .padding(10.dp)
     ) {
+        // Montant total
         Text(
             text = String.format(Locale.CANADA_FRENCH, "Solde : %.2f$", balance),
             modifier = modifier.padding(5.dp)
         )
 
+        // Onglets pour afficher les dépenses ou bien les revenus
         TabRow(
             selectedTabIndex = selectedTransactionTabIndex,
             modifier = modifier
@@ -92,6 +94,7 @@ fun HomeScreen(
         Spacer(modifier = modifier.height(10.dp))
 
         ElevatedCard {
+            // Barre de navigation pour filtrer par période
             TabRow(
                 selectedTabIndex = selectedPeriodTabIndex
             ) {
@@ -110,6 +113,7 @@ fun HomeScreen(
 
             }
 
+            // Affichage de la période visée
             Text(
                 text = getPeriodText(selectedPeriodTabIndex),
                 modifier = Modifier
@@ -122,12 +126,14 @@ fun HomeScreen(
                     .fillMaxWidth()
                     .padding(bottom = 10.dp)
             ) {
+                // Pie Chart
                 TransactionPieChart(
                     transactionGroups,
                     modifier = Modifier
                         .align(Alignment.Center)
                 )
 
+                // Bouton pour ajouter une transaction
                 FloatingActionButton(
                     onClick = {
                         navController.navigate(ExpenseTrackerScreen.NewTransaction.name)
@@ -142,6 +148,7 @@ fun HomeScreen(
             }
         }
 
+        // Liste de dépenses / revenus par catégories pour la période visée
         TransactionGroupList(transactionGroups)
     }
 }

@@ -67,8 +67,8 @@ fun NewTransactionScreen(
     var selectedDateMillis by rememberSaveable { mutableStateOf<Long?>(null) }
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
 
-
     Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+        // Onglets pour choisir le type de la transaction (dépenses ou revenus)
         TabRow(
             selectedTabIndex = selectedTransactionTabIndex,
             modifier = Modifier
@@ -91,6 +91,7 @@ fun NewTransactionScreen(
 
         Spacer(modifier = modifier.height(20.dp))
 
+        // Champs pour indique la valeur de la transaction
         NumberField(
             leadingIcon = R.drawable.attach_money_24dp,
             value = amountInput,
@@ -104,6 +105,7 @@ fun NewTransactionScreen(
 
         Spacer(modifier = modifier.height(20.dp))
 
+        // Liste des catégories disponibles, incluant un bouton pour ajouter une nouvelle catégorie
         CategoryList(
             navController = navController,
             categories = categories,
@@ -114,6 +116,7 @@ fun NewTransactionScreen(
 
         Spacer(modifier = modifier.height(20.dp))
 
+        // Affichage et sélection de la date à partir d'un date picker
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -145,6 +148,7 @@ fun NewTransactionScreen(
 
         Spacer(modifier = modifier.height(30.dp))
 
+        // Bouton de soumission de la nouvelle transaction
         Button(
             onClick = {
                 val transactionType = if (selectedTransactionTabIndex == 0)

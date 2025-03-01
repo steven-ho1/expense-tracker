@@ -18,7 +18,7 @@ class TransactionViewModel : ViewModel() {
     private val _balance = MutableStateFlow(0.0)
 
     /*
-        Pour l'encapsulation
+        Pour l'encapsulation.
         Propriétés StateFlow immutables publiques
         (peuvent être observées de l'extérieur mais ne peuvent pas être modifiées)
     */
