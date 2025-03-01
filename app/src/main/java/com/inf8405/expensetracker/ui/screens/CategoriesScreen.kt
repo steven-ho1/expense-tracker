@@ -64,13 +64,13 @@ fun CategoriesScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF2D4F3C)) // Couleur de fond verte foncée
+                .background(Color(0xFFFFFFFF)) // Couleur de fond verte foncée
         ) {
             // Barre d'onglets pour basculer entre dépenses et revenus
             TabRow(
                 selectedTabIndex = selectedTab,
-                containerColor = Color(0xFF2D4F3C),
-                contentColor = Color.White
+                containerColor = Color(0xFFFFFFFF),
+
             ) {
                 Tab(
                     selected = selectedTab == 0,
@@ -157,7 +157,7 @@ fun CategoryItem(
         // Nom de la catégorie
         Text(
             text = category.name,
-            color = Color.White,
+            color = Color.Black,
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 8.dp)
